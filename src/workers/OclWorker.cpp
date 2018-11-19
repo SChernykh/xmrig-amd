@@ -72,9 +72,9 @@ OclWorker::OclWorker(Handle *handle) :
     }
 }
 
-std::atomic<int> TestCountdown;
-std::atomic<int> ThreadCounter;
-bool TestPassed = true;
+std::atomic<int> OclWorker::TestCountdown;
+std::atomic<int> OclWorker::ThreadCounter;
+bool OclWorker::TestPassed = true;
 
 void OclWorker::start()
 {

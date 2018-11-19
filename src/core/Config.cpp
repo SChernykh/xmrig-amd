@@ -38,6 +38,7 @@
 #include "rapidjson/filewritestream.h"
 #include "rapidjson/prettywriter.h"
 #include "workers/OclThread.h"
+#include "workers/OclWorker.h"
 
 
 #ifdef _MSC_VER
@@ -273,8 +274,7 @@ bool xmrig::Config::parseString(int key, const char *arg)
 
     case TestCountKey:
         {
-            extern std::atomic<int> TestCountdown;
-            TestCountdown = atoi(arg);
+            OclWorker::TestCountdown = atoi(arg);
         }
         break;
 

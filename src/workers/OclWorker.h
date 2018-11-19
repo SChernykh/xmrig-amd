@@ -44,6 +44,10 @@ class OclWorker : public IWorker
 public:
     OclWorker(Handle *handle);
 
+    static std::atomic<int> TestCountdown;
+    static std::atomic<int> ThreadCounter;
+    static bool TestPassed;
+
 protected:
     inline uint64_t hashCount() const override { return m_hashCount.load(std::memory_order_relaxed); }
     inline uint64_t timestamp() const override { return m_timestamp.load(std::memory_order_relaxed); }

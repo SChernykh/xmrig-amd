@@ -39,7 +39,7 @@
 #include "Summary.h"
 #include "version.h"
 #include "workers/Workers.h"
-
+#include "workers/OclWorker.h"
 
 #ifndef XMRIG_NO_HTTPD
 #   include "common/api/Httpd.h"
@@ -47,17 +47,14 @@
 
 
 App *App::m_self = nullptr;
-extern std::atomic<int> TestCountdown;
-extern std::atomic<int> ThreadCounter;
-
 
 
 App::App(int argc, char **argv) :
     m_console(nullptr),
     m_httpd(nullptr)
 {
-    TestCountdown = 30;
-    ThreadCounter = 0;
+    OclWorker::TestCountdown = 30;
+    OclWorker::ThreadCounter = 0;
 
     m_self = this;
 
