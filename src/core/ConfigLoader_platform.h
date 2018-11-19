@@ -146,6 +146,7 @@ static struct option const options[] = {
     { "no-cache",             0, nullptr, xmrig::IConfig::OclCacheKey       },
     { "print-platforms",      0, nullptr, xmrig::IConfig::OclPrintKey       },
     { "opencl-loader",        1, nullptr, xmrig::IConfig::OclLoaderKey      },
+    { "test-count",           1, nullptr, xmrig::IConfig::TestCountKey      },
     { nullptr,                0, nullptr, 0 }
 };
 

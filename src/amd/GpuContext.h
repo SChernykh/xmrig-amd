@@ -56,7 +56,6 @@ struct GpuContext
         DeviceID(nullptr),
         CommandQueues(nullptr),
         InputBuffer(nullptr),
-        OutputBuffer(nullptr),
         ExtraBuffers{ nullptr },
         Program(nullptr),
         Kernels{ nullptr },
@@ -79,7 +78,6 @@ struct GpuContext
         DeviceID(nullptr),
         CommandQueues(nullptr),
         InputBuffer(nullptr),
-        OutputBuffer(nullptr),
         ExtraBuffers{ nullptr },
         Program(nullptr),
         Kernels{ nullptr },
@@ -103,7 +101,6 @@ struct GpuContext
     cl_device_id DeviceID;
     cl_command_queue CommandQueues;
     cl_mem InputBuffer;
-    cl_mem OutputBuffer;
     cl_mem ExtraBuffers[6];
     cl_program Program;
     cl_kernel Kernels[12];

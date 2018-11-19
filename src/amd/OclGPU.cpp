@@ -174,13 +174,6 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
         return OCL_ERR_API;
     }
 
-    // Assume we may find up to 0xFF nonces in one run - it's reasonable
-    ctx->OutputBuffer = OclLib::createBuffer(opencl_ctx, CL_MEM_READ_WRITE, sizeof(cl_uint) * 0x100, nullptr, &ret);
-    if (ret != CL_SUCCESS) {
-        LOG_ERR("Error %s when calling clCreateBuffer to create output buffer.", err_to_str(ret));
-        return OCL_ERR_API;
-    }
-
     OclCache cache(index, opencl_ctx, ctx, source_code, config);
     if (!cache.load()) {
         return OCL_ERR_API;
@@ -534,12 +527,6 @@ size_t XMRSetJob(GpuContext *ctx, uint8_t *input, size_t input_len, uint64_t tar
             return OCL_ERR_API;
         }
 
-        // Output
-        if ((ret = OclLib::setKernelArg(ctx->Kernels[i + 3], 2, sizeof(cl_mem), &ctx->OutputBuffer)) != CL_SUCCESS) {
-            LOG_ERR(kSetKernelArgErr, err_to_str(ret), i + 3, 2);
-            return OCL_ERR_API;
-        }
-
         // Target
         if ((ret = OclLib::setKernelArg(ctx->Kernels[i + 3], 3, sizeof(cl_ulong), &target)) != CL_SUCCESS) {
             LOG_ERR(kSetKernelArgErr, err_to_str(ret), i + 3, 3);
@@ -571,11 +558,6 @@ size_t XMRRunJob(GpuContext *ctx, cl_uint *HashOutput, xmrig::Variant variant)
         }
     }
 
-    if ((ret = OclLib::enqueueWriteBuffer(ctx->CommandQueues, ctx->OutputBuffer, CL_FALSE, sizeof(cl_uint) * 0xFF, sizeof(cl_uint), &zero, 0, nullptr, nullptr)) != CL_SUCCESS) {
-        LOG_ERR("Error %s when calling clEnqueueWriteBuffer to fetch results.", err_to_str(ret));
-        return OCL_ERR_API;
-    }
-
     OclLib::finish(ctx->CommandQueues);
 
     size_t Nonce[2] = {ctx->Nonce, 1}, gthreads[2] = { g_thd, 8 }, lthreads[2] = { 8, 8 };
@@ -599,57 +581,13 @@ size_t XMRRunJob(GpuContext *ctx, cl_uint *HashOutput, xmrig::Variant variant)
         return OCL_ERR_API;
     }
 
-    if (OclLib::enqueueReadBuffer(ctx->CommandQueues, ctx->ExtraBuffers[2], CL_FALSE, sizeof(cl_uint) * g_intensity, sizeof(cl_uint), BranchNonces, 0, nullptr, nullptr) != CL_SUCCESS) {
-        return OCL_ERR_API;
-    }
+    OclLib::finish(ctx->CommandQueues);
 
-    if (OclLib::enqueueReadBuffer(ctx->CommandQueues, ctx->ExtraBuffers[3], CL_FALSE, sizeof(cl_uint) * g_intensity, sizeof(cl_uint), BranchNonces + 1, 0, nullptr, nullptr) != CL_SUCCESS) {
-        return OCL_ERR_API;
-    }
-
-    if (OclLib::enqueueReadBuffer(ctx->CommandQueues, ctx->ExtraBuffers[4], CL_FALSE, sizeof(cl_uint) * g_intensity, sizeof(cl_uint), BranchNonces + 2, 0, nullptr, nullptr) != CL_SUCCESS) {
-        return OCL_ERR_API;
-    }
-
-    if (OclLib::enqueueReadBuffer(ctx->CommandQueues, ctx->ExtraBuffers[5], CL_FALSE, sizeof(cl_uint) * g_intensity, sizeof(cl_uint), BranchNonces + 3, 0, nullptr, nullptr) != CL_SUCCESS) {
+    if (OclLib::enqueueReadBuffer(ctx->CommandQueues, ctx->ExtraBuffers[1], CL_TRUE, 0, g_thd * 200, HashOutput, 0, nullptr, NULL) != CL_SUCCESS) {
         return OCL_ERR_API;
     }
 
     OclLib::finish(ctx->CommandQueues);
-
-    for (int i = 0; i < 4; ++i) {
-        if (BranchNonces[i]) {
-            // Threads
-            if ((OclLib::setKernelArg(ctx->Kernels[i + 3], 4, sizeof(cl_uint), BranchNonces + i)) != CL_SUCCESS) {
-                LOG_ERR(kSetKernelArgErr, err_to_str(ret), i + 3, 4);
-                return OCL_ERR_API;
-            }
-
-            // round up to next multiple of w_size
-            BranchNonces[i] = ((BranchNonces[i] + w_size - 1u) / w_size) * w_size;
-            // number of global threads must be a multiple of the work group size (w_size)
-            assert(BranchNonces[i]%w_size == 0);
-            size_t tmpNonce = ctx->Nonce;
-            if ((ret = OclLib::enqueueNDRangeKernel(ctx->CommandQueues, ctx->Kernels[i + 3], 1, &tmpNonce, BranchNonces + i, &w_size, 0, nullptr, nullptr)) != CL_SUCCESS) {
-                LOG_ERR("Error %s when calling clEnqueueNDRangeKernel for kernel %d.", err_to_str(ret), i + 3);
-                return OCL_ERR_API;
-            }
-        }
-    }
-
-    if (OclLib::enqueueReadBuffer(ctx->CommandQueues, ctx->OutputBuffer, CL_TRUE, 0, sizeof(cl_uint) * 0x100, HashOutput, 0, nullptr, NULL) != CL_SUCCESS) {
-        return OCL_ERR_API;
-    }
-
-    OclLib::finish(ctx->CommandQueues);
-    auto & numHashValues = HashOutput[0xFF];
-    // avoid out of memory read, we have only storage for 0xFF results
-    if (numHashValues > 0xFF) {
-        numHashValues = 0xFF;
-    }
-
-    ctx->Nonce += (uint32_t) g_intensity;
-
     return OCL_ERR_SUCCESS;
 }
 
@@ -657,7 +595,6 @@ size_t XMRRunJob(GpuContext *ctx, cl_uint *HashOutput, xmrig::Variant variant)
 void ReleaseOpenCl(GpuContext* ctx)
 {
     OclLib::releaseMemObject(ctx->InputBuffer);
-    OclLib::releaseMemObject(ctx->OutputBuffer);
 
     int buffer_count = sizeof(ctx->ExtraBuffers) / sizeof(ctx->ExtraBuffers[0]);
     for (int b = 0; b < buffer_count; ++b) {

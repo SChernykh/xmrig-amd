@@ -72,16 +72,27 @@ OclWorker::OclWorker(Handle *handle) :
     }
 }
 
+std::atomic<int> TestCountdown = 30;
+std::atomic<int> ThreadCounter = 0;
+bool TestPassed = true;
 
 void OclWorker::start()
 {
+    ++ThreadCounter;
+
     SGPUThreadInterleaveData& interleaveData = GPUThreadInterleaveData[m_ctx->deviceIdx % MAX_DEVICE_COUNT];
-    cl_uint results[0x100];
+
+    std::vector<cl_uint> results, reference_results;
+    size_t g_intensity = m_ctx->rawIntensity;
+    size_t w_size = m_ctx->workSize;
+    size_t g_thd = ((g_intensity + w_size - 1u) / w_size) * w_size;
+    results.resize(g_thd * 200 / sizeof(cl_uint));
+    reference_results.reserve(g_thd * 200 / sizeof(cl_uint));
 
     while (Workers::sequence() > 0) {
-        while (!Workers::isOutdated(m_sequence)) {
-            memset(results, 0, sizeof(cl_uint) * (0x100));
 
+        reference_results.clear();
+        while (!Workers::isOutdated(m_sequence)) {
             const int64_t delay = interleaveAdjustDelay();
             if (delay > 0) {
                 std::this_thread::sleep_for(std::chrono::milliseconds(delay));
@@ -93,18 +104,39 @@ void OclWorker::start()
 
             const int64_t t = xmrig::steadyTimestamp();
 
-            XMRRunJob(m_ctx, results, m_job.algorithm().variant());
-
-            for (size_t i = 0; i < results[0xFF]; i++) {
-                *m_job.nonce() = results[i];
-                Workers::submit(m_job);
+            XMRRunJob(m_ctx, results.data(), m_job.algorithm().variant());
+            if (reference_results.empty())
+            {
+                reference_results = results;
+            }
+            else if (results != reference_results)
+            {
+                LOG_ERR("Thread #%zu FAILED", m_id);
+                TestPassed = false;
+                return;
+            }
+            else
+            {
+                LOG_INFO("Thread #%zu passed", m_id);
+                int k = --TestCountdown;
+                if (k <= 0)
+                {
+                    LOG_INFO("Thread #%zu finished testing", m_id);
+                    k = --ThreadCounter;
+                    if (k <= 0)
+                    {
+                        LOG_INFO("Test %s", TestPassed ? "passed" : "failed");
+                        exit(TestPassed ? 0 : 1);
+                    }
+                    return;
+                }
             }
 
             storeStats(t);
             std::this_thread::yield();
         }
 
-        if (Workers::isPaused()) {
+        if (Workers::isPaused() && (TestCountdown > 0)) {
             {
                 std::lock_guard<std::mutex> g(interleaveData.m);
                 interleaveData.resumeCounter = 0;

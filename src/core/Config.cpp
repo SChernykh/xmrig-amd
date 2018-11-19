@@ -24,6 +24,7 @@
 #include <string.h>
 #include <uv.h>
 #include <inttypes.h>
+#include <atomic>
 
 
 #include "amd/OclGPU.h"
@@ -268,6 +269,13 @@ bool xmrig::Config::parseString(int key, const char *arg)
 
     case OclLoaderKey: /* --opencl-loader */
         m_loader = arg;
+        break;
+
+    case TestCountKey:
+        {
+            extern std::atomic<int> TestCountdown;
+            TestCountdown = atoi(arg);
+        }
         break;
 
     default:
