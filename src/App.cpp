@@ -47,6 +47,8 @@
 
 
 App *App::m_self = nullptr;
+extern std::atomic<int> TestCountdown;
+extern std::atomic<int> ThreadCounter;
 
 
 
@@ -68,6 +70,9 @@ App::App(int argc, char **argv) :
     uv_signal_init(uv_default_loop(), &m_sigHUP);
     uv_signal_init(uv_default_loop(), &m_sigINT);
     uv_signal_init(uv_default_loop(), &m_sigTERM);
+
+    TestCountdown = 30;
+    ThreadCounter = 0;
 }
 
 
