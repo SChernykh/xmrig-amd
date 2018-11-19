@@ -113,23 +113,23 @@ void OclWorker::start()
             {
                 LOG_ERR("Thread #%zu FAILED", m_id);
                 TestPassed = false;
-                return;
             }
             else
             {
                 LOG_INFO("Thread #%zu passed", m_id);
-                int k = --TestCountdown;
+            }
+
+            int k = --TestCountdown;
+            if ((k <= 0) || !TestPassed)
+            {
+                LOG_INFO("Thread #%zu finished testing", m_id);
+                k = --ThreadCounter;
                 if (k <= 0)
                 {
-                    LOG_INFO("Thread #%zu finished testing", m_id);
-                    k = --ThreadCounter;
-                    if (k <= 0)
-                    {
-                        LOG_INFO("Test %s", TestPassed ? "passed" : "failed");
-                        exit(TestPassed ? 0 : 1);
-                    }
-                    return;
+                    LOG_INFO("Test %s", TestPassed ? "passed" : "failed");
+                    exit(TestPassed ? 0 : 1);
                 }
+                return;
             }
 
             storeStats(t);
