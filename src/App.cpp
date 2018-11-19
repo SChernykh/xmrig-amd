@@ -56,6 +56,9 @@ App::App(int argc, char **argv) :
     m_console(nullptr),
     m_httpd(nullptr)
 {
+    TestCountdown = 30;
+    ThreadCounter = 0;
+
     m_self = this;
 
     m_controller = new xmrig::Controller();
@@ -70,9 +73,6 @@ App::App(int argc, char **argv) :
     uv_signal_init(uv_default_loop(), &m_sigHUP);
     uv_signal_init(uv_default_loop(), &m_sigINT);
     uv_signal_init(uv_default_loop(), &m_sigTERM);
-
-    TestCountdown = 30;
-    ThreadCounter = 0;
 }
 
 
