@@ -96,6 +96,7 @@ public:
         OclUnrollKey      = 1409,
         OclCompModeKey    = 1410,
         TestCountKey      = 1411,
+        TestSpeedKey      = 1412,
 
         // xmrig-proxy
         AccessLogFileKey   = 'A',

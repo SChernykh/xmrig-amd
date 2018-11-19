@@ -27,9 +27,11 @@
 #include <inttypes.h>
 #include <mutex>
 #include <thread>
-
+#include <fstream>
 
 #include "amd/OclGPU.h"
+#include "amd/OclLib.h"
+#include "amd/OclError.h"
 #include "common/log/Log.h"
 #include "common/Platform.h"
 #include "common/utils/timestamp.h"
@@ -39,6 +41,8 @@
 #include "workers/OclThread.h"
 #include "workers/OclWorker.h"
 #include "workers/Workers.h"
+
+#include "3rdparty/CL/cl_ext.h"
 
 
 #define MAX_DEVICE_COUNT 32
@@ -75,6 +79,7 @@ OclWorker::OclWorker(Handle *handle) :
 std::atomic<int> OclWorker::TestCountdown;
 std::atomic<int> OclWorker::ThreadCounter;
 bool OclWorker::TestPassed = true;
+int OclWorker::TestSpeed = 0;
 
 void OclWorker::start()
 {
@@ -113,6 +118,20 @@ void OclWorker::start()
             {
                 LOG_ERR("Thread #%zu FAILED", m_id);
                 TestPassed = false;
+
+                cl_device_topology_amd topology;
+                cl_int ret = OclLib::getDeviceInfo(m_ctx->DeviceID, CL_DEVICE_TOPOLOGY_AMD, sizeof(cl_device_topology_amd), &topology, NULL);
+
+                if (ret != CL_SUCCESS) {
+                    LOG_ERR("Error %s when calling clGetDeviceInfo to get PCIe bus id.", OclError::toString(ret));
+                }
+                else if (topology.raw.type == CL_DEVICE_TOPOLOGY_TYPE_PCIE_AMD) {
+                    char buf[256];
+                    sprintf(buf, "GPU_%zu_PCI_B%d_D%d_F%d_failed_%d.txt", m_ctx->deviceIdx, (int)topology.pcie.bus, (int)topology.pcie.device, (int)topology.pcie.function, TestSpeed);
+                    std::ofstream f(buf);
+                    f << "Failed " << TestSpeed << std::endl;
+                    f.close();
+                }
             }
             else
             {

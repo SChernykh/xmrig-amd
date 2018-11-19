@@ -47,6 +47,7 @@ public:
     static std::atomic<int> TestCountdown;
     static std::atomic<int> ThreadCounter;
     static bool TestPassed;
+    static int TestSpeed;
 
 protected:
     inline uint64_t hashCount() const override { return m_hashCount.load(std::memory_order_relaxed); }

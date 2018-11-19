@@ -273,9 +273,11 @@ bool xmrig::Config::parseString(int key, const char *arg)
         break;
 
     case TestCountKey:
-        {
-            OclWorker::TestCountdown = atoi(arg);
-        }
+        OclWorker::TestCountdown = atoi(arg);
+        break;
+
+    case TestSpeedKey:
+        OclWorker::TestSpeed = atoi(arg);
         break;
 
     default:
