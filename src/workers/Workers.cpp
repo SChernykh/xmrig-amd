@@ -27,6 +27,7 @@
 
 
 #include "amd/OclGPU.h"
+#include "amd/OclLib.h"
 #include "api/Api.h"
 #include "common/log/Log.h"
 #include "core/Config.h"
@@ -191,7 +192,17 @@ bool Workers::start(xmrig::Controller *controller)
 #   endif
 
     m_controller = controller;
-    const std::vector<xmrig::IThread *> &threads = controller->config()->threads();
+    std::vector<xmrig::IThread *> &threads = controller->config()->threads();
+    std::vector<cl_platform_id> platforms = OclLib::getPlatformIDs();
+
+    for (size_t i = 0; i < threads.size(); ++i) {
+        if (platforms.size() <= threads[i]->index()) {
+            LOG_WARN("Using only first %zu threds out of %zu in specificed config.json", i, threads.size());
+            threads.resize(i);
+            break;
+        }
+    }
+
     size_t ways = 0;
 
     for (const xmrig::IThread *thread : threads) {

@@ -57,7 +57,7 @@ public:
     inline bool isOclCache() const                       { return m_cache; }
     inline bool isShouldSave() const                     { return m_shouldSave && isAutoSave(); }
     inline const char *loader() const                    { return m_loader.data(); }
-    inline const std::vector<IThread *> &threads() const { return m_threads; }
+    inline std::vector<IThread *> &threads() { return m_threads; }
     inline int platformIndex() const                     { return m_platformIndex; }
     inline xmrig::OclVendor vendor() const               { return m_vendor; }
 
