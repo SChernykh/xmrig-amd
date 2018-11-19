@@ -197,7 +197,7 @@ bool Workers::start(xmrig::Controller *controller)
 
     for (size_t i = 0; i < threads.size(); ++i) {
         if (platforms.size() <= threads[i]->index()) {
-            LOG_WARN("Using only first %zu threds out of %zu in specificed config.json", i, threads.size());
+            LOG_WARN("Using only first %zu threads out of %zu in specificed config.json", i, threads.size());
             threads.resize(i);
             break;
         }
