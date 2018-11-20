@@ -131,9 +131,17 @@ void OclWorker::start()
                 if (topology.raw.type == CL_DEVICE_TOPOLOGY_TYPE_PCIE_AMD) {
                     char buf[256];
                     sprintf(buf, "GPU_%zu_PCI_B%d_D%d_F%d_failed_%d.txt", m_ctx->deviceIdx, (int)topology.pcie.bus, (int)topology.pcie.device, (int)topology.pcie.function, TestSpeed);
-                    std::ofstream f(buf);
-                    f << "Failed " << TestSpeed << std::endl;
-                    f.close();
+                    {
+                        std::ofstream f(buf);
+                        f << "Failed " << TestSpeed << std::endl;
+                        f.close();
+                    }
+                    sprintf(buf, "GPU_%zu_failed.txt", m_ctx->deviceIdx);
+                    {
+                        std::ofstream f(buf);
+                        f << "Failed " << TestSpeed << std::endl;
+                        f.close();
+                    }
                 }
             }
             else

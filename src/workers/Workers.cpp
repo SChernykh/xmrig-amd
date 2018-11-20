@@ -24,7 +24,7 @@
 
 #include <cmath>
 #include <thread>
-
+#include <fstream>
 
 #include "amd/OclGPU.h"
 #include "amd/OclLib.h"
@@ -256,12 +256,28 @@ bool Workers::start(xmrig::Controller *controller)
 
     size_t i = 0;
     for (xmrig::IThread *thread : threads) {
+        char buf[256];
+        sprintf(buf, "GPU_%zu_failed.txt", contexts[i].deviceIdx);
+        {
+            std::ifstream f(buf);
+            if (f.good())
+            {
+                LOG_WARN("GPU #%zu failed before, skipping it", contexts[i].deviceIdx);
+                continue;
+            }
+        }
+
         Handle *handle = new Handle(i, thread, &contexts[i], offset, ways);
         offset += thread->multiway();
         i++;
 
         m_workers.push_back(handle);
         handle->start(Workers::onReady);
+    }
+
+    if (m_workers.empty()) {
+        LOG_ERR("No GPUs left to run stability test");
+        return false;
     }
 
     if (controller->config()->isShouldSave()) {
