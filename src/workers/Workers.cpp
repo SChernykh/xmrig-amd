@@ -194,9 +194,13 @@ bool Workers::start(xmrig::Controller *controller)
     m_controller = controller;
     std::vector<xmrig::IThread *> &threads = controller->config()->threads();
     std::vector<cl_platform_id> platforms = OclLib::getPlatformIDs();
+    const size_t platformIndex = static_cast<size_t>(controller->config()->platformIndex());
+
+    cl_uint num_devices = 0;
+    OclLib::getDeviceIDs(platforms[platformIndex], CL_DEVICE_TYPE_GPU, 0, nullptr, &num_devices);
 
     for (size_t i = 0; i < threads.size(); ++i) {
-        if (platforms.size() <= threads[i]->index()) {
+        if (num_devices <= threads[i]->index()) {
             LOG_WARN("Using only first %zu threads out of %zu specified in config.json", i, threads.size());
             threads.resize(i);
             break;
