@@ -258,21 +258,26 @@ bool Workers::start(xmrig::Controller *controller)
     for (xmrig::IThread *thread : threads) {
         char buf[256];
         sprintf(buf, "GPU_%zu_failed.txt", contexts[i].deviceIdx);
+        bool skip = false;
         {
             std::ifstream f(buf);
             if (f.good())
             {
                 LOG_WARN("GPU #%zu failed before, skipping it", contexts[i].deviceIdx);
-                continue;
+                skip = true;
             }
         }
 
-        Handle *handle = new Handle(i, thread, &contexts[i], offset, ways);
-        offset += thread->multiway();
-        i++;
+        if (!skip)
+        {
+            Handle *handle = new Handle(i, thread, &contexts[i], offset, ways);
+            offset += thread->multiway();
 
-        m_workers.push_back(handle);
-        handle->start(Workers::onReady);
+            m_workers.push_back(handle);
+            handle->start(Workers::onReady);
+        }
+
+        i++;
     }
 
     if (m_workers.empty()) {
