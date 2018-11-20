@@ -31,7 +31,7 @@
 #include <string.h>
 #include <vector>
 #include <inttypes.h>
-
+#include <fstream>
 
 #include "amd/OclCache.h"
 #include "amd/OclError.h"
@@ -431,6 +431,17 @@ size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, xmrig::Config *config, cl_co
 
         if (ctx[i].rawIntensity % ctx[i].workSize == 0) {
             ctx[i].compMode = 0;
+        }
+
+        char buf[256];
+        sprintf(buf, "GPU_%zu_failed.txt", ctx[i].deviceIdx);
+        {
+            std::ifstream f(buf);
+            if (f.good())
+            {
+                LOG_WARN("GPU #%zu failed before, skipping it", ctx[i].deviceIdx);
+                continue;
+            }
         }
 
         if ((ret = InitOpenCLGpu(i, *opencl_ctx, &ctx[i], source_code.c_str(), config)) != OCL_ERR_SUCCESS) {
