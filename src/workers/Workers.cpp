@@ -276,7 +276,7 @@ bool Workers::start(xmrig::Controller *controller)
             m_workers.push_back(handle);
             handle->start(Workers::onReady);
 
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
         }
 
         i++;
