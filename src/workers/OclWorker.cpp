@@ -74,6 +74,21 @@ OclWorker::OclWorker(Handle *handle) :
     if (affinity >= 0) {
         Platform::setThreadAffinity(static_cast<uint64_t>(affinity));
     }
+
+    size_t g_intensity = m_ctx->rawIntensity;
+    size_t w_size = m_ctx->workSize;
+    size_t g_thd = ((g_intensity + w_size - 1u) / w_size) * w_size;
+    results.resize(g_thd * 200 / sizeof(cl_uint) + 1);
+    reference_results.reserve(g_thd * 200 / sizeof(cl_uint) + 1);
+
+    cl_device_topology_amd topology;
+    cl_int ret = OclLib::getDeviceInfo(m_ctx->DeviceID, CL_DEVICE_TOPOLOGY_AMD, sizeof(cl_device_topology_amd), &topology, NULL);
+    if (ret != CL_SUCCESS) {
+        LOG_ERR("Error %s when calling clGetDeviceInfo to get PCIe bus id.", OclError::toString(ret));
+    }
+    else {
+        LOG_INFO("Thread #%zu: 0000:%.2x:%.2x.%.1x", m_id, (int)topology.pcie.bus, (int)topology.pcie.device, (int)topology.pcie.function);
+    }
 }
 
 std::atomic<int> OclWorker::TestCountdown;
@@ -86,22 +101,6 @@ void OclWorker::start()
     ++ThreadCounter;
 
     SGPUThreadInterleaveData& interleaveData = GPUThreadInterleaveData[m_ctx->deviceIdx % MAX_DEVICE_COUNT];
-
-    std::vector<cl_uint> results, reference_results;
-    size_t g_intensity = m_ctx->rawIntensity;
-    size_t w_size = m_ctx->workSize;
-    size_t g_thd = ((g_intensity + w_size - 1u) / w_size) * w_size;
-    results.resize(g_thd * 200 / sizeof(cl_uint));
-    reference_results.reserve(g_thd * 200 / sizeof(cl_uint));
-
-    cl_device_topology_amd topology;
-    cl_int ret = OclLib::getDeviceInfo(m_ctx->DeviceID, CL_DEVICE_TOPOLOGY_AMD, sizeof(cl_device_topology_amd), &topology, NULL);
-    if (ret != CL_SUCCESS) {
-        LOG_ERR("Error %s when calling clGetDeviceInfo to get PCIe bus id.", OclError::toString(ret));
-    }
-    else {
-        LOG_INFO("Thread #%zu: 0000:%.2x:%.2x.%.1x", m_id, (int)topology.pcie.bus, (int)topology.pcie.device, (int)topology.pcie.function);
-    }
 
     while (Workers::sequence() > 0) {
 
@@ -128,7 +127,12 @@ void OclWorker::start()
                 LOG_ERR("Thread #%zu FAILED", m_id);
                 TestPassed = false;
 
-                if (topology.raw.type == CL_DEVICE_TOPOLOGY_TYPE_PCIE_AMD) {
+                cl_device_topology_amd topology;
+                cl_int ret = OclLib::getDeviceInfo(m_ctx->DeviceID, CL_DEVICE_TOPOLOGY_AMD, sizeof(cl_device_topology_amd), &topology, NULL);
+                if (ret != CL_SUCCESS) {
+                    LOG_ERR("Error %s when calling clGetDeviceInfo to get PCIe bus id.", OclError::toString(ret));
+                }
+                else if (topology.raw.type == CL_DEVICE_TOPOLOGY_TYPE_PCIE_AMD) {
                     char buf[256];
                     sprintf(buf, "GPU_%zu_0000_%.2x_%.2x.%.1x_failed_%d.txt", m_ctx->deviceIdx, (int)topology.pcie.bus, (int)topology.pcie.device, (int)topology.pcie.function, TestSpeed);
                     {
