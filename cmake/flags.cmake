@@ -12,21 +12,21 @@ endif()
 
 if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
 
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -Wno-strict-aliasing")
-    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -g -Ofast")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wno-strict-aliasing")
+    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Og")
 
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall -fno-rtti -Wno-class-memaccess")
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -g -Ofast -s")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -fno-rtti -Wno-class-memaccess")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Og -s")
     
     if (XMRIG_ARMv8)
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -march=armv8-a+crypto")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -march=armv8-a+crypto -flax-vector-conversions")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=armv8-a+crypto")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=armv8-a+crypto -flax-vector-conversions")
     elseif (XMRIG_ARMv7)
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -mfpu=neon")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -mfpu=neon -flax-vector-conversions")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mfpu=neon")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mfpu=neon -flax-vector-conversions")
     else()
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -maes")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -maes")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -maes")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -maes")
     endif()
 
     if (WIN32)
@@ -41,7 +41,11 @@ if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
     endif()
 
-    #set(CMAKE_C_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -gdwarf-2")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -gdwarf")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -gdwarf")
+
+    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -gdwarf")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -gdwarf")
 
 elseif (CMAKE_CXX_COMPILER_ID MATCHES MSVC)
 
