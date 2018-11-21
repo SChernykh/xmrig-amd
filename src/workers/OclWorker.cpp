@@ -100,7 +100,7 @@ void OclWorker::start()
         LOG_ERR("Error %s when calling clGetDeviceInfo to get PCIe bus id.", OclError::toString(ret));
     }
     else {
-        LOG_INFO("Thread #%zu: PCI_B%d_D%d_F%d", m_id, (int)topology.pcie.bus, (int)topology.pcie.device, (int)topology.pcie.function);
+        LOG_INFO("Thread #%zu: 0000:%.2x:%.2x.%.1x", m_id, (int)topology.pcie.bus, (int)topology.pcie.device, (int)topology.pcie.function);
     }
 
     while (Workers::sequence() > 0) {
@@ -130,7 +130,7 @@ void OclWorker::start()
 
                 if (topology.raw.type == CL_DEVICE_TOPOLOGY_TYPE_PCIE_AMD) {
                     char buf[256];
-                    sprintf(buf, "GPU_%zu_PCI_B%d_D%d_F%d_failed_%d.txt", m_ctx->deviceIdx, (int)topology.pcie.bus, (int)topology.pcie.device, (int)topology.pcie.function, TestSpeed);
+                    sprintf(buf, "GPU_%zu_0000_%.2x_%.2x.%.1x_failed_%d.txt", m_ctx->deviceIdx, (int)topology.pcie.bus, (int)topology.pcie.device, (int)topology.pcie.function, TestSpeed);
                     {
                         std::ofstream f(buf);
                         f << "Failed " << TestSpeed << std::endl;
