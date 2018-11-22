@@ -42,8 +42,6 @@
 #include "workers/OclWorker.h"
 #include "workers/Workers.h"
 
-#include "3rdparty/CL/cl_ext.h"
-
 
 #define MAX_DEVICE_COUNT 32
 
@@ -81,7 +79,6 @@ OclWorker::OclWorker(Handle *handle) :
     results.resize(g_thd * 200 / sizeof(cl_uint) + 1);
     reference_results.reserve(g_thd * 200 / sizeof(cl_uint) + 1);
 
-    cl_device_topology_amd topology;
     cl_int ret = OclLib::getDeviceInfo(m_ctx->DeviceID, CL_DEVICE_TOPOLOGY_AMD, sizeof(cl_device_topology_amd), &topology, NULL);
     if (ret != CL_SUCCESS) {
         LOG_ERR("Error %s when calling clGetDeviceInfo to get PCIe bus id.", OclError::toString(ret));
@@ -102,6 +99,7 @@ void OclWorker::start()
 
     SGPUThreadInterleaveData& interleaveData = GPUThreadInterleaveData[m_ctx->deviceIdx % MAX_DEVICE_COUNT];
 
+    bool passed = true;
     while (Workers::sequence() > 0) {
 
         reference_results.clear();
@@ -126,26 +124,20 @@ void OclWorker::start()
             {
                 LOG_ERR("Thread #%zu FAILED", m_id);
                 TestPassed = false;
+                passed = false;
 
-                cl_device_topology_amd topology;
-                cl_int ret = OclLib::getDeviceInfo(m_ctx->DeviceID, CL_DEVICE_TOPOLOGY_AMD, sizeof(cl_device_topology_amd), &topology, NULL);
-                if (ret != CL_SUCCESS) {
-                    LOG_ERR("Error %s when calling clGetDeviceInfo to get PCIe bus id.", OclError::toString(ret));
+                char buf[256];
+                sprintf(buf, "GPU_%zu_0000_%.2x_%.2x.%.1x_failed_%d.txt", m_ctx->deviceIdx, (int)topology.pcie.bus, (int)topology.pcie.device, (int)topology.pcie.function, TestSpeed);
+                {
+                    std::ofstream f(buf);
+                    f << "Failed " << TestSpeed << std::endl;
+                    f.close();
                 }
-                else if (topology.raw.type == CL_DEVICE_TOPOLOGY_TYPE_PCIE_AMD) {
-                    char buf[256];
-                    sprintf(buf, "GPU_%zu_0000_%.2x_%.2x.%.1x_failed_%d.txt", m_ctx->deviceIdx, (int)topology.pcie.bus, (int)topology.pcie.device, (int)topology.pcie.function, TestSpeed);
-                    {
-                        std::ofstream f(buf);
-                        f << "Failed " << TestSpeed << std::endl;
-                        f.close();
-                    }
-                    sprintf(buf, "GPU_%zu_failed.txt", m_ctx->deviceIdx);
-                    {
-                        std::ofstream f(buf);
-                        f << "Failed " << TestSpeed << std::endl;
-                        f.close();
-                    }
+                sprintf(buf, "GPU_%zu_failed.txt", m_ctx->deviceIdx);
+                {
+                    std::ofstream f(buf);
+                    f << "Failed " << TestSpeed << std::endl;
+                    f.close();
                 }
             }
             else
@@ -157,6 +149,16 @@ void OclWorker::start()
             if ((k <= 0) || !TestPassed)
             {
                 LOG_INFO("Thread #%zu finished testing", m_id);
+                if (passed)
+                {
+                    char buf[256];
+                    sprintf(buf, "GPU_%zu_0000_%.2x_%.2x.%.1x_passed_%d.txt", m_ctx->deviceIdx, (int)topology.pcie.bus, (int)topology.pcie.device, (int)topology.pcie.function, TestSpeed);
+                    {
+                        std::ofstream f(buf);
+                        f << "Passed " << TestSpeed << std::endl;
+                        f.close();
+                    }
+                }
                 k = --ThreadCounter;
                 if (k <= 0)
                 {
