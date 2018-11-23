@@ -54,6 +54,10 @@ static struct SGPUThreadInterleaveData
     double averageRunTime    = 0;
     int64_t lastRunTimeStamp = 0;
     int resumeCounter        = 0;
+    
+    bool passed = true;
+    bool tested = false;
+    cl_device_topology_amd topology;
 } GPUThreadInterleaveData[MAX_DEVICE_COUNT];
 
 
@@ -98,8 +102,9 @@ void OclWorker::start()
     ++ThreadCounter;
 
     SGPUThreadInterleaveData& interleaveData = GPUThreadInterleaveData[m_ctx->deviceIdx % MAX_DEVICE_COUNT];
+    interleaveData.tested = true;
+    interleaveData.topology = topology;
 
-    bool passed = true;
     while (Workers::sequence() > 0) {
 
         reference_results.clear();
@@ -124,7 +129,7 @@ void OclWorker::start()
             {
                 LOG_ERR("Thread #%zu FAILED", m_id);
                 TestPassed = false;
-                passed = false;
+                interleaveData.passed = false;
 
                 char buf[256];
                 sprintf(buf, "GPU_%zu_0000_%.2x_%.2x.%.1x_failed_%d.txt", m_ctx->deviceIdx, (int)topology.pcie.bus, (int)topology.pcie.device, (int)topology.pcie.function, TestSpeed);
@@ -149,20 +154,23 @@ void OclWorker::start()
             if ((k <= 0) || !TestPassed)
             {
                 LOG_INFO("Thread #%zu finished testing", m_id);
-                if (passed)
-                {
-                    char buf[256];
-                    sprintf(buf, "GPU_%zu_0000_%.2x_%.2x.%.1x_passed_%d.txt", m_ctx->deviceIdx, (int)topology.pcie.bus, (int)topology.pcie.device, (int)topology.pcie.function, TestSpeed);
-                    {
-                        std::ofstream f(buf);
-                        f << "Passed " << TestSpeed << std::endl;
-                        f.close();
-                    }
-                }
                 k = --ThreadCounter;
                 if (k <= 0)
                 {
                     LOG_INFO("Test %s", TestPassed ? "passed" : "failed");
+                    for (size_t i = 0; i < MAX_DEVICE_COUNT; ++i)
+                    {
+                        if (GPUThreadInterleaveData[i].tested && GPUThreadInterleaveData[i].passed)
+                        {
+                            char buf[256];
+                            sprintf(buf, "GPU_%zu_0000_%.2x_%.2x.%.1x_passed.txt", i, (int)GPUThreadInterleaveData[i].topology.pcie.bus, (int)GPUThreadInterleaveData[i].topology.pcie.device, (int)GPUThreadInterleaveData[i].topology.pcie.function);
+                            {
+                                std::ofstream f(buf);
+                                f << TestSpeed << std::endl;
+                                f.close();
+                            }
+                        }
+                    }
                     exit(TestPassed ? 0 : 1);
                 }
                 return;
