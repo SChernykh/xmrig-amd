@@ -53,6 +53,8 @@ struct GpuContext
         compMode(1),
         unrollFactor(8),
         vendor(xmrig::OCL_VENDOR_UNKNOWN),
+        opencl_ctx(nullptr),
+        platformIdx(0),
         DeviceID(nullptr),
         CommandQueues(nullptr),
         InputBuffer(nullptr),
@@ -77,6 +79,8 @@ struct GpuContext
         compMode(compMode ? 1 : 0),
         unrollFactor(unrollFactor),
         vendor(xmrig::OCL_VENDOR_UNKNOWN),
+        opencl_ctx(nullptr),
+        platformIdx(0),
         DeviceID(nullptr),
         CommandQueues(nullptr),
         InputBuffer(nullptr),
@@ -102,13 +106,16 @@ struct GpuContext
     xmrig::OclVendor vendor;
 
     /*Output vars*/
+    cl_context opencl_ctx;
+    int platformIdx;
     cl_device_id DeviceID;
     cl_command_queue CommandQueues;
     cl_mem InputBuffer;
     cl_mem OutputBuffer;
     cl_mem ExtraBuffers[6];
     cl_program Program;
-    cl_kernel Kernels[12];
+    cl_program CryptonightR;
+    cl_kernel Kernels[13];
     size_t freeMem;
     size_t globalMem;
     cl_uint computeUnits;

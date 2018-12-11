@@ -47,7 +47,7 @@ class JobResult;
 class CryptoNight
 {
 public:
-    typedef void (*cn_hash_fun)(const uint8_t *input, size_t size, uint8_t *output, cryptonight_ctx **ctx);
+    typedef void (*cn_hash_fun)(const uint8_t *input, size_t size, uint8_t *output, cryptonight_ctx **ctx, uint64_t height);
 
     static inline cn_hash_fun fn(xmrig::Variant variant) { return fn(m_algorithm, m_av, variant); }
 
@@ -60,6 +60,7 @@ public:
 private:
     static bool selfTest();
     static bool verify(xmrig::Variant variant, const uint8_t *referenceValue);
+    static bool verify2(xmrig::Variant variant, const char *test_data);
 
     alignas(16) static cryptonight_ctx *m_ctx;
     static xmrig::Algo m_algorithm;
