@@ -24,6 +24,7 @@
 
 
 #include <assert.h>
+#include <sstream>
 
 
 #include "common/cpu/Cpu.h"
@@ -42,7 +43,7 @@ xmrig::AlgoVerify CryptoNight::m_av  = xmrig::VERIFY_HW_AES;
 
 bool CryptoNight::hash(const Job &job, JobResult &result, cryptonight_ctx *ctx)
 {
-    fn(job.algorithm().variant())(job.blob(), job.size(), result.result, &ctx);
+    fn(job.algorithm().variant())(job.blob(), job.size(), result.result, &ctx, job.height());
 
     return *reinterpret_cast<uint64_t*>(result.result + 24) < job.target();
 }
@@ -93,6 +94,12 @@ CryptoNight::cn_hash_fun CryptoNight::fn(xmrig::Algo algorithm, xmrig::AlgoVerif
         cryptonight_single_hash<CRYPTONIGHT, false, VARIANT_2>,
         cryptonight_single_hash<CRYPTONIGHT, true,  VARIANT_2>,
 
+        cryptonight_single_hash<CRYPTONIGHT, false, VARIANT_4>,
+        cryptonight_single_hash<CRYPTONIGHT, true,  VARIANT_4>,
+
+        cryptonight_single_hash<CRYPTONIGHT, false, VARIANT_4_64>,
+        cryptonight_single_hash<CRYPTONIGHT, true,  VARIANT_4_64>,
+
 #       ifndef XMRIG_NO_AEON
         cryptonight_single_hash<CRYPTONIGHT_LITE, false, VARIANT_0>,
         cryptonight_single_hash<CRYPTONIGHT_LITE, true,  VARIANT_0>,
@@ -107,7 +114,10 @@ CryptoNight::cn_hash_fun CryptoNight::fn(xmrig::Algo algorithm, xmrig::AlgoVerif
         nullptr, nullptr, // VARIANT_XAO
         nullptr, nullptr, // VARIANT_RTO
         nullptr, nullptr, // VARIANT_2
+        nullptr, nullptr, // VARIANT_4
+        nullptr, nullptr, // VARIANT_4_64
 #       else
+        nullptr, nullptr, nullptr, nullptr,
         nullptr, nullptr, nullptr, nullptr,
         nullptr, nullptr, nullptr, nullptr,
         nullptr, nullptr, nullptr, nullptr,
@@ -133,7 +143,10 @@ CryptoNight::cn_hash_fun CryptoNight::fn(xmrig::Algo algorithm, xmrig::AlgoVerif
         nullptr, nullptr, // VARIANT_XAO
         nullptr, nullptr, // VARIANT_RTO
         nullptr, nullptr, // VARIANT_2
+        nullptr, nullptr, // VARIANT_4
+        nullptr, nullptr, // VARIANT_4_64
 #       else
+        nullptr, nullptr, nullptr, nullptr,
         nullptr, nullptr, nullptr, nullptr,
         nullptr, nullptr, nullptr, nullptr,
         nullptr, nullptr, nullptr, nullptr,
@@ -179,7 +192,9 @@ bool CryptoNight::selfTest() {
     m_ctx = createCtx(m_algorithm);
 
     if (m_algorithm == xmrig::CRYPTONIGHT) {
-        return verify(VARIANT_0,   test_output_v0)  &&
+        return verify2(VARIANT_4, test_input_R) &&
+               verify2(VARIANT_4_64, test_input_R_64) &&
+               verify(VARIANT_0, test_output_v0) &&
                verify(VARIANT_1,   test_output_v1)  &&
                verify(VARIANT_2,   test_output_v2)  &&
                verify(VARIANT_XTL, test_output_xtl) &&
@@ -220,7 +235,60 @@ bool CryptoNight::verify(xmrig::Variant variant, const uint8_t *referenceValue)
         return false;
     }
 
-    func(test_input, 76, output, &m_ctx);
+    func(test_input, 76, output, &m_ctx, 0);
 
     return memcmp(output, referenceValue, 32) == 0;
+}
+
+bool CryptoNight::verify2(xmrig::Variant variant, const char *test_data)
+{
+    cn_hash_fun func = fn(variant);
+    if (!func) {
+        return false;
+    }
+
+    std::stringstream s(test_data);
+    std::string expected_hex;
+    std::string input_hex;
+    uint64_t height;
+    while (!s.eof())
+    {
+        uint8_t referenceValue[32];
+        uint8_t input[256];
+
+        s >> expected_hex;
+        s >> input_hex;
+        s >> height;
+
+        if ((expected_hex.length() != 64) || (input_hex.length() > 512))
+        {
+            return false;
+        }
+
+        bool err = false;
+
+        for (int i = 0; i < 32; ++i)
+        {
+            referenceValue[i] = (hf_hex2bin(expected_hex[i * 2], err) << 4) + hf_hex2bin(expected_hex[i * 2 + 1], err);
+        }
+
+        const size_t input_len = input_hex.length() / 2;
+        for (size_t i = 0; i < input_len; ++i)
+        {
+            input[i] = (hf_hex2bin(input_hex[i * 2], err) << 4) + hf_hex2bin(input_hex[i * 2 + 1], err);
+        }
+
+        if (err)
+        {
+            return false;
+        }
+
+        uint8_t hash[32];
+        func(input, input_len, hash, &m_ctx, height);
+        if (memcmp(hash, referenceValue, sizeof(hash)) != 0)
+        {
+            return false;
+        }
+    }
+    return true;
 }

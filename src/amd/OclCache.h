@@ -37,7 +37,7 @@ namespace xmrig {
 class OclCache
 {
 public:
-    OclCache(int index, cl_context opencl_ctx, GpuContext *ctx, const char *source_code, xmrig::Config *config);
+    OclCache(int index, cl_context opencl_ctx, GpuContext *ctx, const char *source_code, const char *source_code_CryptonightR, xmrig::Config *config);
 
     bool load();
 
@@ -49,11 +49,13 @@ private:
     int devId(cl_uint num_devices) const;
     void createDirectory() const;
 
+    static cl_int wait_build(cl_program program, cl_device_id device);
     static std::string prefix();
-    static void sleep(size_t sec);
+    static void sleep(size_t ms);
 
     cl_context m_oclCtx;
     const char *m_sourceCode;
+    const char *m_sourceCodeCryptonightR;
     GpuContext *m_ctx;
     int m_index;
     std::string m_fileName;

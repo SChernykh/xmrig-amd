@@ -134,7 +134,7 @@ static void printGPU(int index, GpuContext *ctx, xmrig::Config *config)
 }
 
 
-size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const char* source_code, xmrig::Config *config)
+size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const char* source_code, const char* source_code_CryptonightR, xmrig::Config *config)
 {
     printGPU(index, ctx, config);
 
@@ -198,7 +198,7 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
         return OCL_ERR_API;
     }
 
-    OclCache cache(index, opencl_ctx, ctx, source_code, config);
+    OclCache cache(index, opencl_ctx, ctx, source_code, source_code_CryptonightR, config);
     if (!cache.load()) {
         return OCL_ERR_API;
     }
@@ -444,6 +444,12 @@ size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, xmrig::Config *config, cl_co
     source_code = std::regex_replace(source_code, std::regex("XMRIG_INCLUDE_FAST_INT_MATH_V2"), fastIntMathV2CL);
     source_code = std::regex_replace(source_code, std::regex("XMRIG_INCLUDE_FAST_DIV_HEAVY"), fastDivHeavyCL);
 
+    const char *cryptonightR_CL =
+        #include "./opencl/cryptonight_r.cl"
+    ;
+    std::string source_code_CryptonightR(cryptonightR_CL);
+    source_code_CryptonightR = std::regex_replace(source_code_CryptonightR, std::regex("XMRIG_INCLUDE_WOLF_AES"), wolfAesCL);
+
     for (size_t i = 0; i < num_gpus; ++i) {
         if (ctx[i].stridedIndex == 2 && (ctx[i].rawIntensity % ctx[i].workSize) != 0) {
             const size_t reduced_intensity = (ctx[i].rawIntensity / ctx[i].workSize) * ctx[i].workSize;
@@ -456,7 +462,7 @@ size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, xmrig::Config *config, cl_co
             ctx[i].compMode = 0;
         }
 
-        if ((ret = InitOpenCLGpu(i, *opencl_ctx, &ctx[i], source_code.c_str(), config)) != OCL_ERR_SUCCESS) {
+        if ((ret = InitOpenCLGpu(i, *opencl_ctx, &ctx[i], source_code.c_str(), source_code_CryptonightR.c_str(), config)) != OCL_ERR_SUCCESS) {
             return ret;
         }
     }

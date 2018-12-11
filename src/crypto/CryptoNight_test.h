@@ -54,6 +54,14 @@ const static uint8_t test_input[380] = {
     0xCF, 0x50, 0x29, 0x6A, 0x07, 0x0B, 0x93, 0x8F, 0x8F, 0xA8, 0x10, 0x04
 };
 
+const static char* test_input_R = R"===(
+d23ac1d423a1d184cefa9525a772831a45cc612bab7cf92832e0d01725ed3bdf 5468697320697320612074657374205468697320697320612074657374205468697320697320612074657374 1806260
+)===";
+
+const static char* test_input_R_64 = R"===(
+3ad68a733c554ea504dad6944dffbdb670a1eae3fad9464958f905c541b3cf50 5468697320697320612074657374205468697320697320612074657374205468697320697320612074657374 1806260
+)===";
+
 
 const static uint8_t test_output_v0[160] = {
     0x1A, 0x3F, 0xFB, 0xEE, 0x90, 0x9B, 0x42, 0x0D, 0x91, 0xF7, 0xBE, 0x6E, 0x5F, 0xB5, 0x6D, 0xB7,
@@ -233,5 +241,8 @@ const static uint8_t test_output_tube_heavy[160] = {
 };
 #endif
 
+
+unsigned char hf_hex2bin(char c, bool &err);
+char hf_bin2hex(unsigned char c);
 
 #endif /* __CRYPTONIGHT_TEST_H__ */

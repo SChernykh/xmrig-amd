@@ -40,20 +40,34 @@
 #include "crypto/CryptoNight_constants.h"
 
 
-OclCache::OclCache(int index, cl_context opencl_ctx, GpuContext *ctx, const char *source_code, xmrig::Config *config) :
+OclCache::OclCache(int index, cl_context opencl_ctx, GpuContext *ctx, const char *source_code, const char* source_code_CryptonightR, xmrig::Config *config) :
     m_oclCtx(opencl_ctx),
     m_sourceCode(source_code),
+    m_sourceCodeCryptonightR(source_code_CryptonightR),
     m_ctx(ctx),
     m_index(index),
     m_config(config)
 {
 }
 
+cl_int OclCache::wait_build(cl_program program, cl_device_id device)
+{
+    cl_build_status status;
+    do
+    {
+        if (OclLib::getProgramBuildInfo(program, device, CL_PROGRAM_BUILD_STATUS, sizeof(cl_build_status), &status, nullptr) != CL_SUCCESS) {
+            return OCL_ERR_API;
+        }
+
+        sleep(1);
+    } while (status == CL_BUILD_IN_PROGRESS);
+
+    return CL_SUCCESS;
+}
 
 bool OclCache::load()
 {
     const xmrig::Algo algo  = m_config->algorithm().algo();
-    const int64_t timeStart = xmrig::steadyTimestamp();
 
     char options[512] = { 0 };
     snprintf(options, sizeof(options), "-DITERATIONS=%u -DMASK=%u -DWORKSIZE=%zu -DSTRIDED_INDEX=%d -DMEM_CHUNK_EXPONENT=%d -DCOMP_MODE=%d -DMEMORY=%zu "
@@ -80,6 +94,8 @@ bool OclCache::load()
         LOG_INFO(m_config->isColors() ? "GPU " WHITE_BOLD("#%zu") " " YELLOW_BOLD("compiling...") :
                                         "GPU #%zu compiling...", m_ctx->deviceIdx);
 
+        int64_t timeStart = xmrig::steadyTimestamp();
+
         cl_int ret;
         m_ctx->Program = OclLib::createProgramWithSource(m_oclCtx, 1, reinterpret_cast<const char**>(&m_sourceCode), nullptr, &ret);
         if (ret != CL_SUCCESS) {
@@ -104,27 +120,24 @@ bool OclCache::load()
             std::cerr << buildLog << std::endl;
 
             delete [] buildLog;
-            return OCL_ERR_API;
+            return false;
         }
 
         const cl_uint num_devices = numDevices();
         const int dev_id          = devId(num_devices);
 
-        cl_build_status status;
-        do
-        {
-            if (OclLib::getProgramBuildInfo(m_ctx->Program, m_ctx->DeviceID, CL_PROGRAM_BUILD_STATUS, sizeof(cl_build_status), &status, nullptr) != CL_SUCCESS) {
-                return OCL_ERR_API;
-            }
-
-            sleep(1);
+        if (wait_build(m_ctx->Program, m_ctx->DeviceID) != CL_SUCCESS) {
+            return false;
         }
-        while(status == CL_BUILD_IN_PROGRESS);
 
-        LOG_INFO(m_config->isColors() ? "GPU " WHITE_BOLD("#%zu") " " GREEN_BOLD("compilation completed") ", elapsed time " WHITE_BOLD("%03.2fs") :
-                                        "GPU #%zu compilation completed, elapsed time %03.2fs", m_ctx->deviceIdx, (xmrig::steadyTimestamp() - timeStart) / 1000.0);
+        int64_t timeFinish = xmrig::steadyTimestamp();
 
-        return save(dev_id, num_devices);
+        LOG_INFO(m_config->isColors() ? "GPU " WHITE_BOLD("#%zu") " " GREEN_BOLD("compilation completed") ", elapsed time " WHITE_BOLD("%.3fs") :
+            "GPU #%zu compilation completed, elapsed time %.3fs", m_ctx->deviceIdx, (timeFinish - timeStart) / 1000.0);
+
+        if (!save(dev_id, num_devices)) {
+            return false;
+        }
     }
     else {
         std::ostringstream ss;
@@ -147,6 +160,28 @@ bool OclCache::load()
             return false;
         }
     }
+
+    int64_t timeStart = xmrig::steadyTimestamp();
+
+    cl_int ret;
+    m_ctx->CryptonightR = OclLib::createProgramWithSource(m_oclCtx, 1, reinterpret_cast<const char**>(&m_sourceCodeCryptonightR), nullptr, &ret);
+    if (ret != CL_SUCCESS) {
+        return false;
+    }
+
+    ret = OclLib::buildProgram(m_ctx->CryptonightR, 1, &m_ctx->DeviceID, options);
+    if (ret != CL_SUCCESS) {
+        return false;
+    }
+
+    if (wait_build(m_ctx->CryptonightR, m_ctx->DeviceID) != CL_SUCCESS) {
+        return false;
+    }
+
+    int64_t timeFinish = xmrig::steadyTimestamp();
+
+    LOG_INFO(m_config->isColors() ? "GPU " WHITE_BOLD("#%zu") " " GREEN_BOLD("CryptonightR compilation completed") ", elapsed time " WHITE_BOLD("%.3fs") :
+        "GPU #%zu CryptonightR compilation completed, elapsed time %.3fs", m_ctx->deviceIdx, (timeFinish - timeStart) / 1000.0);
 
     return true;
 }
