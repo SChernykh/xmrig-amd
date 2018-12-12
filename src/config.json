@@ -23,7 +23,7 @@
             "rig-id": null,
             "nicehash": false,
             "keepalive": false,
-            "variant": 9
+            "variant": -1
         }
     ],
     "print-time": 60,

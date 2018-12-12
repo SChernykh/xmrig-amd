@@ -126,8 +126,10 @@ static void background_thread_proc()
 template<typename T>
 static void background_exec(T&& func)
 {
+    BackgroundTaskBase* task = new BackgroundTask<T>(std::move(func));
+
     std::lock_guard<std::mutex> g(background_tasks_mutex);
-    background_tasks.push_back(new BackgroundTask<T>(std::move(func)));
+    background_tasks.push_back(task);
     if (!background_thread) {
         background_thread = new std::thread(background_thread_proc);
     }
@@ -142,6 +144,10 @@ static cl_program CryptonightR_build_program(
     std::string options,
     std::string hash)
 {
+    if (old_kernel) {
+        OclLib::releaseKernel(old_kernel);
+    }
+
     std::vector<cl_program> old_programs;
     old_programs.reserve(32);
     {
@@ -167,10 +173,6 @@ static cl_program CryptonightR_build_program(
 
     for (cl_program p : old_programs) {
         OclLib::releaseProgram(p);
-    }
-
-    if (old_kernel) {
-        OclLib::releaseKernel(old_kernel);
     }
 
     std::lock_guard<std::mutex> g1(CryptonightR_build_mutex);
@@ -241,20 +243,20 @@ cl_program CryptonightR_get_program(GpuContext* ctx, xmrig::Variant variant, uin
         return nullptr;
     }
 
-    V4_Instruction code[256];
-    const int code_size = v4_random_math_init(code, height);
-
-    char* source_code_template =
+    const char* source_code_template =
         #include "opencl/wolf-aes.cl"
         #include "opencl/cryptonight_r.cl"
     ;
     const char include_name[] = "XMRIG_INCLUDE_RANDOM_MATH";
-    char* offset = strstr(source_code_template, include_name);
+    const char* offset = strstr(source_code_template, include_name);
     if (!offset)
     {
         LOG_ERR("CryptonightR_get_program: XMRIG_INCLUDE_RANDOM_MATH not found in cryptonight_r.cl", variant);
         return nullptr;
     }
+
+    V4_Instruction code[256];
+    const int code_size = v4_random_math_init(code, height);
 
     std::string source_code(source_code_template, offset);
     source_code.append(get_code(code, code_size));
