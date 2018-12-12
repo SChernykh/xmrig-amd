@@ -20,6 +20,7 @@ set(HEADERS
     src/amd/GpuContext.h
     src/amd/OclCache.h
     src/amd/OclCLI.h
+    src/amd/OclCryptonightR_gen.h
     src/amd/OclError.h
     src/amd/OclGPU.h
     src/amd/OclLib.h
@@ -102,6 +103,7 @@ endif()
 set(SOURCES
     src/amd/OclCache.cpp
     src/amd/OclCLI.cpp
+    src/amd/OclCryptonightR_gen.cpp
     src/amd/OclGPU.cpp
     src/amd/OclLib.cpp
     src/api/NetworkState.cpp
@@ -189,6 +191,7 @@ add_definitions(/DUNICODE)
 add_definitions(/DXMRIG_AMD_PROJECT)
 add_definitions(/DXMRIG_NO_LIBCPUID)
 add_definitions(/DXMRIG_NO_ASM)
+add_definitions(/DXMRIG_TEST_CRYPTONIGHT_R)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 

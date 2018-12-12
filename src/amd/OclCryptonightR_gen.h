@@ -3,6 +3,6 @@
 
 #include "amd/GpuContext.h"
 
-cl_kernel CryptonightR_kernel(const GpuContext* ctx, xmrig::Variant variant, uint64_t height, bool precompile = false);
+cl_program CryptonightR_get_program(GpuContext* ctx, xmrig::Variant variant, uint64_t height, bool background = false, cl_kernel old_kernel = nullptr);
 
 #endif

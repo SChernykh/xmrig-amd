@@ -39,6 +39,7 @@
 #include "amd/OclLib.h"
 #include "amd/OclCryptonightR_gen.h"
 #include "common/log/Log.h"
+#include "common/utils/timestamp.h"
 #include "core/Config.h"
 #include "crypto/CryptoNight_constants.h"
 #include "cryptonight.h"
@@ -404,7 +405,7 @@ size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, xmrig::Config *config, cl_co
 #   ifdef __GNUC__
     cl_device_id TempDeviceList[num_gpus];
 #   else
-    cl_device_id* TempDeviceList = (cl_device_id*)_alloca(entries * sizeof(cl_device_id));
+    cl_device_id* TempDeviceList = (cl_device_id*)_alloca(num_gpus * sizeof(cl_device_id));
 #   endif
 
     for (size_t i = 0; i < num_gpus; ++i) {
@@ -414,9 +415,12 @@ size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, xmrig::Config *config, cl_co
     *opencl_ctx = OclLib::createContext(nullptr, num_gpus, TempDeviceList, nullptr, nullptr, &ret);
 
     for (size_t i = 0; i < num_gpus; ++i) {
+        ctx[i].threadIdx = i;
         ctx[i].opencl_ctx = *opencl_ctx;
         ctx[i].platformIdx = platform_idx;
         ctx[i].DeviceID = DeviceIDList[ctx[i].deviceIdx];
+        OclCache::get_device_string(ctx[i].platformIdx, ctx[i].DeviceID, ctx[i].DeviceString);
+        ctx[i].amdDriverMajorVersion = OclCache::amdDriverMajorVersion(ctx);
     }
 
     if (ret != CL_SUCCESS) {
@@ -455,7 +459,7 @@ size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, xmrig::Config *config, cl_co
     source_code = std::regex_replace(source_code, std::regex("XMRIG_INCLUDE_BLAKE256"),         blake256CL);
     source_code = std::regex_replace(source_code, std::regex("XMRIG_INCLUDE_GROESTL256"),       groestl256CL);
     source_code = std::regex_replace(source_code, std::regex("XMRIG_INCLUDE_FAST_INT_MATH_V2"), fastIntMathV2CL);
-    source_code = std::regex_replace(source_code, std::regex("XMRIG_INCLUDE_FAST_DIV_HEAVY"), fastDivHeavyCL);
+    source_code = std::regex_replace(source_code, std::regex("XMRIG_INCLUDE_FAST_DIV_HEAVY"),   fastDivHeavyCL);
 
     for (size_t i = 0; i < num_gpus; ++i) {
         if (ctx[i].stridedIndex == 2 && (ctx[i].rawIntensity % ctx[i].workSize) != 0) {
@@ -515,11 +519,31 @@ size_t XMRSetJob(GpuContext *ctx, uint8_t *input, size_t input_len, uint64_t tar
     const int cn_kernel_offset = cnKernelOffset(variant);
 
     if ((variant == xmrig::VARIANT_4) || (variant == xmrig::VARIANT_4_64)) {
-        // Get current kernel
-        ctx->Kernels[cn_kernel_offset] = CryptonightR_kernel(ctx, variant, height);
+        const int64_t timeStart = xmrig::steadyTimestamp();
 
-        // Precompile next kernel in background
-        CryptonightR_kernel(ctx, variant, height + 1, true);
+        // Get new kernel
+        cl_program program = CryptonightR_get_program(ctx, variant, height);
+
+        if (program != ctx->ProgramCryptonightR) {
+            cl_int ret;
+            cl_kernel kernel = OclLib::createKernel(program, "cn1_cryptonight_r", &ret);
+
+            cl_kernel old_kernel = nullptr;
+            if (ret != CL_SUCCESS) {
+                LOG_ERR("CryptonightR: clCreateKernel returned error %s", OclError::toString(ret));
+            }
+            else {
+                old_kernel = ctx->Kernels[cn_kernel_offset];
+                ctx->Kernels[cn_kernel_offset] = kernel;
+            }
+            ctx->ProgramCryptonightR = program;
+
+            // Precompile next program in background
+            CryptonightR_get_program(ctx, variant, height + 1, true, old_kernel);
+        }
+        
+        const int64_t timeFinish = xmrig::steadyTimestamp();
+        LOG_INFO("Thread #%zu updated CryptonightR in %.3fs", ctx->threadIdx, (timeFinish - timeStart) / 1000.0);
     }
 
     // Scratchpads, States

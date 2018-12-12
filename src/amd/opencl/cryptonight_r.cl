@@ -1,10 +1,4 @@
 R"===(
-#ifdef RANDOM_MATH_64_BIT
-extern ulong4 random_math(ulong4 r, ulong r4, ulong r5, ulong r6, ulong r7);
-#else
-extern uint4 random_math(uint4 r, uint r4, uint r5, uint r6, uint r7);
-#endif
-
 #define MEM_CHUNK (1 << MEM_CHUNK_EXPONENT)
 
 __attribute__((reqd_work_group_size(WORKSIZE, 1, 1)))

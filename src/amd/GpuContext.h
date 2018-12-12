@@ -53,15 +53,18 @@ struct GpuContext
         compMode(1),
         unrollFactor(8),
         vendor(xmrig::OCL_VENDOR_UNKNOWN),
+        threadIdx(0),
         opencl_ctx(nullptr),
         platformIdx(0),
         DeviceID(nullptr),
+        amdDriverMajorVersion(0),
         CommandQueues(nullptr),
         InputBuffer(nullptr),
         OutputBuffer(nullptr),
         ExtraBuffers{ nullptr },
         Program(nullptr),
         Kernels{ nullptr },
+        ProgramCryptonightR(nullptr),
         freeMem(0),
         globalMem(0),
         computeUnits(0),
@@ -79,15 +82,18 @@ struct GpuContext
         compMode(compMode ? 1 : 0),
         unrollFactor(unrollFactor),
         vendor(xmrig::OCL_VENDOR_UNKNOWN),
+        threadIdx(0),
         opencl_ctx(nullptr),
         platformIdx(0),
         DeviceID(nullptr),
+        amdDriverMajorVersion(0),
         CommandQueues(nullptr),
         InputBuffer(nullptr),
         OutputBuffer(nullptr),
         ExtraBuffers{ nullptr },
         Program(nullptr),
         Kernels{ nullptr },
+        ProgramCryptonightR(nullptr),
         freeMem(0),
         globalMem(0),
         computeUnits(0),
@@ -106,15 +112,19 @@ struct GpuContext
     xmrig::OclVendor vendor;
 
     /*Output vars*/
+    size_t threadIdx;
     cl_context opencl_ctx;
     int platformIdx;
     cl_device_id DeviceID;
+    std::string DeviceString;
+    int amdDriverMajorVersion;
     cl_command_queue CommandQueues;
     cl_mem InputBuffer;
     cl_mem OutputBuffer;
     cl_mem ExtraBuffers[6];
     cl_program Program;
     cl_kernel Kernels[13];
+    cl_program ProgramCryptonightR;
     size_t freeMem;
     size_t globalMem;
     cl_uint computeUnits;

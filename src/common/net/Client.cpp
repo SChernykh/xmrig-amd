@@ -337,9 +337,13 @@ bool Client::parseJob(const rapidjson::Value &params, int *code)
         return false;
     }
 
+#ifdef XMRIG_TEST_CRYPTONIGHT_R
+    job.setAlgorithm("cn/r");
+#else
     if (params.HasMember("algo")) {
         job.setAlgorithm(params["algo"].GetString());
     }
+#endif
 
     if (params.HasMember("variant")) {
         const rapidjson::Value &variant = params["variant"];
@@ -359,6 +363,12 @@ bool Client::parseJob(const rapidjson::Value &params, int *code)
             job.setHeight(variant.GetUint64());
         }
     }
+#ifdef XMRIG_TEST_CRYPTONIGHT_R
+    else {
+        static uint64_t height = 0;
+        job.setHeight(height++);
+    }
+#endif
 
     if (!verifyAlgorithm(job.algorithm())) {
         *code = 6;

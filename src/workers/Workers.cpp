@@ -353,7 +353,11 @@ void Workers::onResult(uv_async_t *handle)
             JobBaton *baton = static_cast<JobBaton*>(req->data);
 
             for (const JobResult &result : baton->results) {
+#ifdef XMRIG_TEST_CRYPTONIGHT_R
+                LOG_NOTICE("THREAD #%d OK", baton->jobs[0].threadId());
+#else
                 m_listener->onJobResult(result);
+#endif
             }
 
             if (baton->errors > 0 && !baton->jobs.empty()) {

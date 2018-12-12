@@ -1,10 +1,13 @@
 #include <string>
 #include <sstream>
 #include <mutex>
+#include <cstring>
 #include "crypto/variant4_random_math.h"
 #include "amd/OclCryptonightR_gen.h"
 #include "amd/OclLib.h"
 #include "amd/OclCache.h"
+#include "amd/OclError.h"
+#include "common/log/Log.h"
 
 static std::string get_code(const V4_Instruction* code, int code_size)
 {
@@ -28,7 +31,7 @@ static std::string get_code(const V4_Instruction* code, int code_size)
 
 		case ADD:
 			{
-				const int c = reinterpret_cast<const int8_t*>(code)[i + 1];
+				const int c = reinterpret_cast<const int8_t*>(code)[++i];
                 s << 'r' << a << "+=r" << b << ((c < 0) ? '-' : '+');
 				s << ((c < 0) ? -c : c) << ';';
 			}
@@ -65,164 +68,226 @@ static std::string get_code(const V4_Instruction* code, int code_size)
 
 struct CacheEntry
 {
-    CacheEntry(xmrig::Variant variant, uint64_t height, std::string&& hash, cl_kernel kernel) :
+    CacheEntry(xmrig::Variant variant, uint64_t height, std::string&& hash, cl_program program) :
         variant(variant),
         height(height),
         hash(std::move(hash)),
-        kernel(kernel)
+        program(program)
     {}
 
     xmrig::Variant variant;
     uint64_t height;
     std::string hash;
-    cl_kernel kernel;
+    cl_program program;
+};
+
+struct BackgroundTaskBase
+{
+    virtual ~BackgroundTaskBase() {}
+    virtual void exec() = 0;
+};
+
+template<typename T>
+struct BackgroundTask : public BackgroundTaskBase
+{
+    BackgroundTask(T&& func) : m_func(std::move(func)) {}
+    void exec() override { m_func(); }
+
+    T m_func;
 };
 
 static std::mutex CryptonightR_cache_mutex;
+static std::mutex CryptonightR_build_mutex;
 static std::vector<CacheEntry> CryptonightR_cache;
 
-#define KERNEL_NAME "cn1_cryptonight_r"
+static std::mutex background_tasks_mutex;
+static std::vector<BackgroundTaskBase*> background_tasks;
+static std::thread* background_thread = nullptr;
 
-static void onBuildDone(cl_program program, void* data)
+static void background_thread_proc()
 {
-    CacheEntry* new_entry = reinterpret_cast<CacheEntry*>(data);
+    std::vector<BackgroundTaskBase*> tasks;
+    for (;;) {
+        tasks.clear();
+        {
+            std::lock_guard<std::mutex> g(background_tasks_mutex);
+            background_tasks.swap(tasks);
+        }
 
-    cl_int ret;
-    new_entry->kernel = OclLib::createKernel(program, KERNEL_NAME, &ret);
-    if (ret != CL_SUCCESS)
-    {
-        return;
+        for (BackgroundTaskBase* task : tasks) {
+            task->exec();
+            delete task;
+        }
+
+        OclCache::sleep(500);
     }
+}
 
-    OclLib::releaseProgram(program);
+template<typename T>
+static void background_exec(T&& func)
+{
+    std::lock_guard<std::mutex> g(background_tasks_mutex);
+    background_tasks.push_back(new BackgroundTask<T>(std::move(func)));
+    if (!background_thread) {
+        background_thread = new std::thread(background_thread_proc);
+    }
+}
 
+static cl_program CryptonightR_build_program(
+    const GpuContext* ctx,
+    xmrig::Variant variant,
+    uint64_t height,
+    cl_kernel old_kernel,
+    std::string source,
+    std::string options,
+    std::string hash)
+{
+    std::vector<cl_program> old_programs;
+    old_programs.reserve(32);
     {
         std::lock_guard<std::mutex> g(CryptonightR_cache_mutex);
 
-        // Check if the cache already has this kernel (some other thread might have added it first)
-        for (const CacheEntry& entry : CryptonightR_cache)
+        // Remove old programs from cache
+        for (size_t i = 0; i < CryptonightR_cache.size();)
         {
-            if ((entry.variant == new_entry->variant) && (entry.height == new_entry->height) && (entry.hash == new_entry->hash))
+            const CacheEntry& entry = CryptonightR_cache[i];
+            if ((entry.variant == variant) && (entry.height + 2 < height))
             {
-                OclLib::releaseKernel(new_entry->kernel);
-                return;
+                //LOG_INFO("CryptonightR: program for height %llu released (old program)", entry.height);
+                old_programs.push_back(entry.program);
+                CryptonightR_cache[i] = std::move(CryptonightR_cache.back());
+                CryptonightR_cache.pop_back();
+            }
+            else
+            {
+                ++i;
             }
         }
-
-        CryptonightR_cache.emplace_back(std::move(*new_entry));
     }
 
-    delete new_entry;
+    for (cl_program p : old_programs) {
+        OclLib::releaseProgram(p);
+    }
+
+    if (old_kernel) {
+        OclLib::releaseKernel(old_kernel);
+    }
+
+    std::lock_guard<std::mutex> g1(CryptonightR_build_mutex);
+
+    cl_program program = nullptr;
+    {
+        std::lock_guard<std::mutex> g(CryptonightR_cache_mutex);
+
+        // Check if the cache already has this program (some other thread might have added it first)
+        for (const CacheEntry& entry : CryptonightR_cache)
+        {
+            if ((entry.variant == variant) && (entry.height == height) && (entry.hash == hash))
+            {
+                program = entry.program;
+                break;
+            }
+        }
+    }
+
+    if (program) {
+        return program;
+    }
+
+    cl_int ret;
+    const char* s = source.c_str();
+    program = OclLib::createProgramWithSource(ctx->opencl_ctx, 1, &s, nullptr, &ret);
+    if (ret != CL_SUCCESS)
+    {
+        LOG_ERR("CryptonightR: clCreateProgramWithSource returned error %s", OclError::toString(ret));
+        return nullptr;
+    }
+
+    ret = OclLib::buildProgram(program, 1, &ctx->DeviceID, options.c_str());
+    if (ret != CL_SUCCESS)
+    {
+        OclLib::releaseProgram(program);
+        LOG_ERR("CryptonightR: clBuildProgram returned error %s", OclError::toString(ret));
+        return nullptr;
+    }
+
+    ret = OclCache::wait_build(program, ctx->DeviceID);
+    if (ret != CL_SUCCESS)
+    {
+        OclLib::releaseProgram(program);
+        LOG_ERR("CryptonightR: wait_build returned error %s", OclError::toString(ret));
+        return false;
+    }
+
+    //LOG_INFO("CryptonightR: program for height %llu compiled", height);
+
+    {
+        std::lock_guard<std::mutex> g(CryptonightR_cache_mutex);
+        CryptonightR_cache.emplace_back(variant, height, std::move(hash), program);
+    }
+    return program;
 }
 
-cl_kernel CryptonightR_kernel(const GpuContext* ctx, xmrig::Variant variant, uint64_t height, bool precompile)
+cl_program CryptonightR_get_program(GpuContext* ctx, xmrig::Variant variant, uint64_t height, bool background, cl_kernel old_kernel)
 {
+    if (background) {
+        background_exec([=](){ CryptonightR_get_program(ctx, variant, height, false, old_kernel); });
+        return nullptr;
+    }
+
     if ((variant != xmrig::VARIANT_4) && (variant != xmrig::VARIANT_4_64))
     {
+        LOG_ERR("CryptonightR_get_program: invalid variant %d", variant);
         return nullptr;
     }
 
     V4_Instruction code[256];
     const int code_size = v4_random_math_init(code, height);
 
-    std::string source_code =
+    char* source_code_template =
         #include "opencl/wolf-aes.cl"
         #include "opencl/cryptonight_r.cl"
     ;
     const char include_name[] = "XMRIG_INCLUDE_RANDOM_MATH";
-    source_code.replace(source_code.find(include_name), sizeof(include_name) - 1, get_code(code, code_size));
+    char* offset = strstr(source_code_template, include_name);
+    if (!offset)
+    {
+        LOG_ERR("CryptonightR_get_program: XMRIG_INCLUDE_RANDOM_MATH not found in cryptonight_r.cl", variant);
+        return nullptr;
+    }
+
+    std::string source_code(source_code_template, offset);
+    source_code.append(get_code(code, code_size));
+    source_code.append(offset + sizeof(include_name) - 1);
 
     char options[512] = {};
-    OclCache::get_options(xmrig::CRYPTONIGHT, ctx, options);
+    OclCache::get_options(xmrig::CRYPTONIGHT, ctx, options, sizeof(options));
 
     if (variant == xmrig::VARIANT_4_64)
     {
         strcat(options, " -DRANDOM_MATH_64_BIT");
     }
 
-    const char* s = source_code.c_str();
+    const char* source = source_code.c_str();
     std::string hash;
-    OclCache::calc_hash(ctx->platformIdx, ctx->DeviceID, s, options, hash);
+    if (ctx->DeviceString.empty() && !OclCache::get_device_string(ctx->platformIdx, ctx->DeviceID, ctx->DeviceString)) {
+        return nullptr;
+    }
+    OclCache::calc_hash(ctx->DeviceString, source, options, hash);
 
     {
         std::lock_guard<std::mutex> g(CryptonightR_cache_mutex);
 
-        if (!precompile)
-        {
-            // Delete old cache entries
-            for (size_t i = 0; i < CryptonightR_cache.size();)
-            {
-                const CacheEntry& entry = CryptonightR_cache[i];
-                if ((entry.variant == variant) && (entry.height < height))
-                {
-                    OclLib::releaseKernel(entry.kernel);
-                    CryptonightR_cache[i] = std::move(CryptonightR_cache.back());
-                    CryptonightR_cache.pop_back();
-                }
-                else
-                {
-                    ++i;
-                }
-            }
-        }
-
-        // Check if cache has this kernel
+        // Check if the cache has this program
         for (const CacheEntry& entry : CryptonightR_cache)
         {
             if ((entry.variant == variant) && (entry.height == height) && (entry.hash == hash))
             {
-                return entry.kernel;
+                //LOG_INFO("CryptonightR: program for height %llu found in cache", height);
+                return entry.program;
             }
         }
     }
 
-    cl_int ret;
-    cl_program program = OclLib::createProgramWithSource(ctx->opencl_ctx, 1, &s, nullptr, &ret);
-    if (ret != CL_SUCCESS)
-    {
-        return nullptr;
-    }
-
-    if (precompile)
-    {
-        CacheEntry* entry = new CacheEntry(variant, height, std::move(hash), nullptr);
-        OclLib::buildProgram(program, 1, &ctx->DeviceID, options, onBuildDone, entry);
-        return nullptr;
-    }
-
-    if (OclLib::buildProgram(program, 1, &ctx->DeviceID, options) != CL_SUCCESS)
-    {
-        OclLib::releaseProgram(program);
-        return nullptr;
-    }
-
-    if (OclCache::wait_build(program, ctx->DeviceID) != CL_SUCCESS)
-    {
-        OclLib::releaseProgram(program);
-        return false;
-    }
-
-    cl_kernel kernel = OclLib::createKernel(program, KERNEL_NAME, &ret);
-    OclLib::releaseProgram(program);
-
-    if (ret != CL_SUCCESS)
-    {
-        return nullptr;
-    }
-
-    std::lock_guard<std::mutex> g(CryptonightR_cache_mutex);
-
-    // Check if the cache already has this kernel (some other thread might have added it first)
-    for (const CacheEntry& entry : CryptonightR_cache)
-    {
-        if ((entry.variant == variant) && (entry.height == height) && (entry.hash == hash))
-        {
-            OclLib::releaseKernel(kernel);
-            return entry.kernel;
-        }
-    }
-
-    CryptonightR_cache.emplace_back(variant, height, std::move(hash), kernel);
-
-    return kernel;
+    return CryptonightR_build_program(ctx, variant, height, old_kernel, source, options, hash);
 }

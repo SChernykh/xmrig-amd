@@ -64,9 +64,9 @@ cl_int OclCache::wait_build(cl_program program, cl_device_id device)
     return CL_SUCCESS;
 }
 
-void OclCache::get_options(xmrig::Algo algo, const GpuContext* ctx, char* options)
+void OclCache::get_options(xmrig::Algo algo, const GpuContext* ctx, char* options, size_t options_size)
 {
-    snprintf(options, sizeof(options), "-DITERATIONS=%u -DMASK=%u -DWORKSIZE=%zu -DSTRIDED_INDEX=%d -DMEM_CHUNK_EXPONENT=%d -DCOMP_MODE=%d -DMEMORY=%zu "
+    snprintf(options, options_size, "-DITERATIONS=%u -DMASK=%u -DWORKSIZE=%zu -DSTRIDED_INDEX=%d -DMEM_CHUNK_EXPONENT=%d -DCOMP_MODE=%d -DMEMORY=%zu "
         "-DALGO=%d -DUNROLL_FACTOR=%d -DOPENCL_DRIVER_MAJOR=%d",
         xmrig::cn_select_iter(algo, xmrig::VARIANT_0),
         xmrig::cn_select_mask(algo),
@@ -77,7 +77,7 @@ void OclCache::get_options(xmrig::Algo algo, const GpuContext* ctx, char* option
         xmrig::cn_select_memory(algo),
         static_cast<int>(algo),
         ctx->unrollFactor,
-        amdDriverMajorVersion(ctx)
+        ctx->amdDriverMajorVersion
     );
 }
 
@@ -86,7 +86,7 @@ bool OclCache::load()
     const xmrig::Algo algo  = m_config->algorithm().algo();
 
     char options[512] = { 0 };
-    get_options(algo, m_ctx, options);
+    get_options(algo, m_ctx, options, sizeof(options));
 
     if (!prepare(options)) {
         return false;
@@ -168,46 +168,57 @@ bool OclCache::load()
     return true;
 }
 
-bool OclCache::calc_hash(int platform, cl_device_id device, const char* source_code, const char *options, std::string& hash)
+bool OclCache::get_device_string(int platform, cl_device_id device, std::string& result)
 {
+    result.clear();
+
     uint8_t buf[256] = {};
 
     if (OclLib::getDeviceInfo(device, CL_DEVICE_NAME, sizeof(buf), buf) != CL_SUCCESS) {
         return false;
     }
 
-    std::string key(source_code);
-    key += options;
-    key += reinterpret_cast<const char *>(buf);
+    result = reinterpret_cast<const char *>(buf);
 
 #   ifdef XMRIG_STRICT_OPENCL_CACHE
     std::vector<cl_platform_id> platforms = OclLib::getPlatformIDs();
     if (OclLib::getPlatformInfo(platforms[platform], CL_PLATFORM_VERSION, sizeof(buf), buf, nullptr) == CL_SUCCESS) {
-        key += reinterpret_cast<const char *>(buf);
+        result += reinterpret_cast<const char *>(buf);
     }
 
     if (OclLib::getDeviceInfo(device, CL_DRIVER_VERSION, sizeof(buf), buf) == CL_SUCCESS) {
-        key += reinterpret_cast<const char *>(buf);
+        result += reinterpret_cast<const char *>(buf);
     }
 #   endif
 
     if (!xmrig::Cpu::info()->isX64()) {
-        key += "x86";
+        result += "x86";
     }
-
-    uint8_t buf2[256] = {};
-    xmrig::keccak(key.c_str(), key.size(), buf2);
-    base32_encode(buf2, 32, buf, sizeof(buf));
-    hash = reinterpret_cast<char*>(buf);
 
     return true;
 }
 
+void OclCache::calc_hash(const std::string& device_string, const char* source_code, const char *options, std::string& hash)
+{
+    std::string key(source_code);
+    key += options;
+    key += device_string;
+
+    uint8_t buf[256] = {};
+    xmrig::keccak(key.c_str(), key.size(), buf);
+
+    uint8_t buf2[256] = {};
+    base32_encode(buf, 32, buf2, sizeof(buf2));
+    hash = reinterpret_cast<char*>(buf2);
+}
+
 bool OclCache::prepare(const char *options)
 {
-    if (!calc_hash(m_config->platformIndex(), m_ctx->DeviceID, m_sourceCode, options, m_fileName)) {
+    std::string device_string;
+    if (!get_device_string(m_config->platformIndex(), m_ctx->DeviceID, device_string)) {
         return false;
     }
+    calc_hash(device_string, m_sourceCode, options, m_fileName);
 
 #   ifdef _WIN32
     m_fileName = prefix() + "\\xmrig\\.cache\\" + m_fileName + ".bin";
