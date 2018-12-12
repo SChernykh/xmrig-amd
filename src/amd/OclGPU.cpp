@@ -37,6 +37,7 @@
 #include "amd/OclError.h"
 #include "amd/OclGPU.h"
 #include "amd/OclLib.h"
+#include "amd/OclCryptonightR_gen.h"
 #include "common/log/Log.h"
 #include "core/Config.h"
 #include "crypto/CryptoNight_constants.h"
@@ -88,6 +89,10 @@ inline static int cnKernelOffset(xmrig::Variant variant)
     case xmrig::VARIANT_2:
         return 11;
 
+    case xmrig::VARIANT_4:
+    case xmrig::VARIANT_4_64:
+        return 12;
+
     default:
         break;
     }
@@ -134,8 +139,10 @@ static void printGPU(int index, GpuContext *ctx, xmrig::Config *config)
 }
 
 
-size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const char* source_code, const char* source_code_CryptonightR, xmrig::Config *config)
+size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const char* source_code, xmrig::Config *config)
 {
+    ctx->opencl_ctx = opencl_ctx;
+
     printGPU(index, ctx, config);
 
     cl_int ret;
@@ -198,7 +205,7 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
         return OCL_ERR_API;
     }
 
-    OclCache cache(index, opencl_ctx, ctx, source_code, source_code_CryptonightR, config);
+    OclCache cache(index, opencl_ctx, ctx, source_code, config);
     if (!cache.load()) {
         return OCL_ERR_API;
     }
@@ -255,6 +262,7 @@ std::vector<GpuContext> OclGPU::getDevices(xmrig::Config *config)
     for (cl_uint i = 0; i < num_devices; i++) {
         GpuContext ctx;
         ctx.deviceIdx    = i;
+        ctx.platformIdx  = platformIndex;
         ctx.DeviceID     = device_list[i];
         ctx.computeUnits = OclLib::getDeviceMaxComputeUnits(ctx.DeviceID);
         ctx.vendor       = OclLib::getDeviceVendor(ctx.DeviceID);
@@ -400,11 +408,16 @@ size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, xmrig::Config *config, cl_co
 #   endif
 
     for (size_t i = 0; i < num_gpus; ++i) {
-        ctx[i].DeviceID = DeviceIDList[ctx[i].deviceIdx];
         TempDeviceList[i] = DeviceIDList[ctx[i].deviceIdx];
     }
 
     *opencl_ctx = OclLib::createContext(nullptr, num_gpus, TempDeviceList, nullptr, nullptr, &ret);
+
+    for (size_t i = 0; i < num_gpus; ++i) {
+        ctx[i].opencl_ctx = *opencl_ctx;
+        ctx[i].platformIdx = platform_idx;
+        ctx[i].DeviceID = DeviceIDList[ctx[i].deviceIdx];
+    }
 
     if (ret != CL_SUCCESS) {
         return OCL_ERR_API;
@@ -444,12 +457,6 @@ size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, xmrig::Config *config, cl_co
     source_code = std::regex_replace(source_code, std::regex("XMRIG_INCLUDE_FAST_INT_MATH_V2"), fastIntMathV2CL);
     source_code = std::regex_replace(source_code, std::regex("XMRIG_INCLUDE_FAST_DIV_HEAVY"), fastDivHeavyCL);
 
-    const char *cryptonightR_CL =
-        #include "./opencl/cryptonight_r.cl"
-    ;
-    std::string source_code_CryptonightR(cryptonightR_CL);
-    source_code_CryptonightR = std::regex_replace(source_code_CryptonightR, std::regex("XMRIG_INCLUDE_WOLF_AES"), wolfAesCL);
-
     for (size_t i = 0; i < num_gpus; ++i) {
         if (ctx[i].stridedIndex == 2 && (ctx[i].rawIntensity % ctx[i].workSize) != 0) {
             const size_t reduced_intensity = (ctx[i].rawIntensity / ctx[i].workSize) * ctx[i].workSize;
@@ -462,7 +469,7 @@ size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, xmrig::Config *config, cl_co
             ctx[i].compMode = 0;
         }
 
-        if ((ret = InitOpenCLGpu(i, *opencl_ctx, &ctx[i], source_code.c_str(), source_code_CryptonightR.c_str(), config)) != OCL_ERR_SUCCESS) {
+        if ((ret = InitOpenCLGpu(i, *opencl_ctx, &ctx[i], source_code.c_str(), config)) != OCL_ERR_SUCCESS) {
             return ret;
         }
     }
@@ -470,7 +477,7 @@ size_t InitOpenCL(GpuContext* ctx, size_t num_gpus, xmrig::Config *config, cl_co
     return OCL_ERR_SUCCESS;
 }
 
-size_t XMRSetJob(GpuContext *ctx, uint8_t *input, size_t input_len, uint64_t target, xmrig::Variant variant)
+size_t XMRSetJob(GpuContext *ctx, uint8_t *input, size_t input_len, uint64_t target, xmrig::Variant variant, uint64_t height)
 {
     cl_int ret;
 
@@ -506,6 +513,14 @@ size_t XMRSetJob(GpuContext *ctx, uint8_t *input, size_t input_len, uint64_t tar
 
     // CN1 Kernel
     const int cn_kernel_offset = cnKernelOffset(variant);
+
+    if ((variant == xmrig::VARIANT_4) || (variant == xmrig::VARIANT_4_64)) {
+        // Get current kernel
+        ctx->Kernels[cn_kernel_offset] = CryptonightR_kernel(ctx, variant, height);
+
+        // Precompile next kernel in background
+        CryptonightR_kernel(ctx, variant, height + 1, true);
+    }
 
     // Scratchpads, States
     if (!setKernelArgFromExtraBuffers(ctx, cn_kernel_offset, 0, 0) || !setKernelArgFromExtraBuffers(ctx, cn_kernel_offset, 1, 1)) {

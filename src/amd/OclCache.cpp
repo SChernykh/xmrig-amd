@@ -40,10 +40,9 @@
 #include "crypto/CryptoNight_constants.h"
 
 
-OclCache::OclCache(int index, cl_context opencl_ctx, GpuContext *ctx, const char *source_code, const char* source_code_CryptonightR, xmrig::Config *config) :
+OclCache::OclCache(int index, cl_context opencl_ctx, GpuContext *ctx, const char *source_code, xmrig::Config *config) :
     m_oclCtx(opencl_ctx),
     m_sourceCode(source_code),
-    m_sourceCodeCryptonightR(source_code_CryptonightR),
     m_ctx(ctx),
     m_index(index),
     m_config(config)
@@ -65,24 +64,29 @@ cl_int OclCache::wait_build(cl_program program, cl_device_id device)
     return CL_SUCCESS;
 }
 
+void OclCache::get_options(xmrig::Algo algo, const GpuContext* ctx, char* options)
+{
+    snprintf(options, sizeof(options), "-DITERATIONS=%u -DMASK=%u -DWORKSIZE=%zu -DSTRIDED_INDEX=%d -DMEM_CHUNK_EXPONENT=%d -DCOMP_MODE=%d -DMEMORY=%zu "
+        "-DALGO=%d -DUNROLL_FACTOR=%d -DOPENCL_DRIVER_MAJOR=%d",
+        xmrig::cn_select_iter(algo, xmrig::VARIANT_0),
+        xmrig::cn_select_mask(algo),
+        ctx->workSize,
+        ctx->stridedIndex,
+        static_cast<int>(1u << ctx->memChunk),
+        ctx->compMode,
+        xmrig::cn_select_memory(algo),
+        static_cast<int>(algo),
+        ctx->unrollFactor,
+        amdDriverMajorVersion(ctx)
+    );
+}
+
 bool OclCache::load()
 {
     const xmrig::Algo algo  = m_config->algorithm().algo();
 
     char options[512] = { 0 };
-    snprintf(options, sizeof(options), "-DITERATIONS=%u -DMASK=%u -DWORKSIZE=%zu -DSTRIDED_INDEX=%d -DMEM_CHUNK_EXPONENT=%d -DCOMP_MODE=%d -DMEMORY=%zu "
-                                       "-DALGO=%d -DUNROLL_FACTOR=%d -DOPENCL_DRIVER_MAJOR=%d",
-             xmrig::cn_select_iter(algo, xmrig::VARIANT_0),
-             xmrig::cn_select_mask(algo),
-             m_ctx->workSize,
-             m_ctx->stridedIndex,
-             static_cast<int>(1u << m_ctx->memChunk),
-             m_ctx->compMode,
-             xmrig::cn_select_memory(algo),
-             static_cast<int>(algo),
-             m_ctx->unrollFactor,
-             amdDriverMajorVersion()
-             );
+    get_options(algo, m_ctx, options);
 
     if (!prepare(options)) {
         return false;
@@ -161,52 +165,28 @@ bool OclCache::load()
         }
     }
 
-    int64_t timeStart = xmrig::steadyTimestamp();
-
-    cl_int ret;
-    m_ctx->CryptonightR = OclLib::createProgramWithSource(m_oclCtx, 1, reinterpret_cast<const char**>(&m_sourceCodeCryptonightR), nullptr, &ret);
-    if (ret != CL_SUCCESS) {
-        return false;
-    }
-
-    ret = OclLib::buildProgram(m_ctx->CryptonightR, 1, &m_ctx->DeviceID, options);
-    if (ret != CL_SUCCESS) {
-        return false;
-    }
-
-    if (wait_build(m_ctx->CryptonightR, m_ctx->DeviceID) != CL_SUCCESS) {
-        return false;
-    }
-
-    int64_t timeFinish = xmrig::steadyTimestamp();
-
-    LOG_INFO(m_config->isColors() ? "GPU " WHITE_BOLD("#%zu") " " GREEN_BOLD("CryptonightR compilation completed") ", elapsed time " WHITE_BOLD("%.3fs") :
-        "GPU #%zu CryptonightR compilation completed, elapsed time %.3fs", m_ctx->deviceIdx, (timeFinish - timeStart) / 1000.0);
-
     return true;
 }
 
-
-bool OclCache::prepare(const char *options)
+bool OclCache::calc_hash(int platform, cl_device_id device, const char* source_code, const char *options, std::string& hash)
 {
-    uint8_t buf[200] = { 0 };
-    char hash[65]    = { 0 };
+    uint8_t buf[256] = {};
 
-    if (OclLib::getDeviceInfo(m_ctx->DeviceID, CL_DEVICE_NAME, sizeof buf, buf) != CL_SUCCESS) {
+    if (OclLib::getDeviceInfo(device, CL_DEVICE_NAME, sizeof(buf), buf) != CL_SUCCESS) {
         return false;
     }
 
-    std::string key(m_sourceCode);
+    std::string key(source_code);
     key += options;
     key += reinterpret_cast<const char *>(buf);
 
 #   ifdef XMRIG_STRICT_OPENCL_CACHE
     std::vector<cl_platform_id> platforms = OclLib::getPlatformIDs();
-    if (OclLib::getPlatformInfo(platforms[m_config->platformIndex()], CL_PLATFORM_VERSION, sizeof buf, buf, nullptr) == CL_SUCCESS) {
+    if (OclLib::getPlatformInfo(platforms[platform], CL_PLATFORM_VERSION, sizeof(buf), buf, nullptr) == CL_SUCCESS) {
         key += reinterpret_cast<const char *>(buf);
     }
 
-    if (OclLib::getDeviceInfo(m_ctx->DeviceID, CL_DRIVER_VERSION, sizeof buf, buf) == CL_SUCCESS) {
+    if (OclLib::getDeviceInfo(device, CL_DRIVER_VERSION, sizeof(buf), buf) == CL_SUCCESS) {
         key += reinterpret_cast<const char *>(buf);
     }
 #   endif
@@ -215,13 +195,24 @@ bool OclCache::prepare(const char *options)
         key += "x86";
     }
 
-    xmrig::keccak(key.c_str(), key.size(), buf);
-    base32_encode(buf, 32, reinterpret_cast<uint8_t *>(hash), sizeof hash);
+    uint8_t buf2[256] = {};
+    xmrig::keccak(key.c_str(), key.size(), buf2);
+    base32_encode(buf2, 32, buf, sizeof(buf));
+    hash = reinterpret_cast<char*>(buf);
+
+    return true;
+}
+
+bool OclCache::prepare(const char *options)
+{
+    if (!calc_hash(m_config->platformIndex(), m_ctx->DeviceID, m_sourceCode, options, m_fileName)) {
+        return false;
+    }
 
 #   ifdef _WIN32
-    m_fileName = prefix() + "\\xmrig\\.cache\\" + hash + ".bin";
+    m_fileName = prefix() + "\\xmrig\\.cache\\" + m_fileName + ".bin";
 #   else
-    m_fileName = prefix() + "/.cache/" + hash + ".bin";
+    m_fileName = prefix() + "/.cache/" + m_fileName + ".bin";
 #   endif
 
 #   ifndef XMRIG_STRICT_OPENCL_CACHE
@@ -275,11 +266,11 @@ cl_uint OclCache::numDevices() const
 }
 
 
-int OclCache::amdDriverMajorVersion() const
+int OclCache::amdDriverMajorVersion(const GpuContext* ctx)
 {
 #   ifdef XMRIG_STRICT_OPENCL_CACHE
     char buf[64] = { 0 };
-    if (OclLib::getDeviceInfo(m_ctx->DeviceID, CL_DRIVER_VERSION, sizeof buf, buf) != CL_SUCCESS) {
+    if (OclLib::getDeviceInfo(ctx->DeviceID, CL_DRIVER_VERSION, sizeof buf, buf) != CL_SUCCESS) {
         return 0;
     }
 

@@ -1,6 +1,4 @@
 R"===(
-XMRIG_INCLUDE_WOLF_AES
-
 #ifdef RANDOM_MATH_64_BIT
 extern ulong4 random_math(ulong4 r, ulong r4, ulong r5, ulong r6, ulong r7);
 #else
@@ -10,7 +8,7 @@ extern uint4 random_math(uint4 r, uint r4, uint r5, uint r6, uint r7);
 #define MEM_CHUNK (1 << MEM_CHUNK_EXPONENT)
 
 __attribute__((reqd_work_group_size(WORKSIZE, 1, 1)))
-__kernel void cn1_v4_monero(__global uint4 *Scratchpad, __global ulong *states, uint variant, __global ulong *input, uint Threads)
+__kernel void cn1_cryptonight_r(__global uint4 *Scratchpad, __global ulong *states, uint variant, __global ulong *input, uint Threads)
 {
     ulong a[2], b[4];
     __local uint AES0[256], AES1[256], AES2[256], AES3[256];
@@ -81,19 +79,15 @@ __kernel void cn1_v4_monero(__global uint4 *Scratchpad, __global ulong *states, 
 #   endif
     {
 #ifdef RANDOM_MATH_64_BIT
-        ulong4 r = (ulong4)(
-            states[12],
-            states[13],
-            states[14],
-            states[15]
-        );
+	ulong r0 = states[12];
+	ulong r1 = states[13];
+	ulong r2 = states[14];
+	ulong r3 = states[15];
 #else
-        uint4 r = (uint4)(
-            as_uint2(states[12]).s0,
-            as_uint2(states[12]).s1,
-            as_uint2(states[13]).s0,
-            as_uint2(states[13]).s1
-        );
+	uint r0 = as_uint2(states[12]).s0;
+	uint r1 = as_uint2(states[12]).s1;
+	uint r2 = as_uint2(states[13]).s0;
+	uint r3 = as_uint2(states[13]).s1;
 #endif
 
     #pragma unroll UNROLL_FACTOR
@@ -137,7 +131,7 @@ __kernel void cn1_v4_monero(__global uint4 *Scratchpad, __global ulong *states, 
         uint4 tmp = SCRATCHPAD_CHUNK(0);
 
 #ifdef RANDOM_MATH_64_BIT
-        const ulong random_math_result = (r.s0 + r.s1) ^ (r.s2 + r.s3);
+        const ulong random_math_result = (r0 + r1) ^ (r2 + r3);
         tmp.s0 ^= as_uint2(random_math_result).s0;
         tmp.s1 ^= as_uint2(random_math_result).s1;
         const ulong r4 = a[0];
@@ -146,8 +140,8 @@ __kernel void cn1_v4_monero(__global uint4 *Scratchpad, __global ulong *states, 
         const ulong r7 = as_ulong2(bx1).s0;
 #define ROT_BITS 64
 #else
-        tmp.s0 ^= r.s0 + r.s1;
-        tmp.s1 ^= r.s2 + r.s3;
+        tmp.s0 ^= r0 + r1;
+        tmp.s1 ^= r2 + r3;
         const uint r4 = as_uint2(a[0]).s0;
         const uint r5 = as_uint2(a[1]).s0;
         const uint r6 = as_uint4(bx0).s0;
@@ -155,65 +149,7 @@ __kernel void cn1_v4_monero(__global uint4 *Scratchpad, __global ulong *states, 
 #define ROT_BITS 32
 #endif
 
-	r.s0 *= r6;
-	r.s1 += r5 - 124;
-	r.s1 ^= r4;
-	r.s3 -= r.s0;
-	r.s3 = rotate(r.s3, r4);
-	r.s1 -= r4;
-	r.s3 += r6 - 103;
-	r.s3 ^= r7;
-	r.s2 -= r6;
-	r.s0 += r6 - 59;
-	r.s1 = rotate(r.s1, ROT_BITS - r.s2);
-	r.s3 *= r.s2;
-	r.s3 = rotate(r.s3, ROT_BITS - r.s1);
-	r.s2 *= r4;
-	r.s2 = rotate(r.s2, r5);
-	r.s2 = rotate(r.s2, r.s0);
-	r.s2 = rotate(r.s2, r6);
-	r.s0 *= r.s3;
-	r.s3 ^= r6;
-	r.s2 = rotate(r.s2, r4);
-	r.s3 = rotate(r.s3, ROT_BITS - r.s2);
-	r.s2 ^= r.s1;
-	r.s0 = rotate(r.s0, r7);
-	r.s2 *= r.s1;
-	r.s0 *= r6;
-	r.s1 += r.s0 + 89;
-	r.s0 += r5 - 110;
-	r.s3 *= r4;
-	r.s3 += r.s0 + 39;
-	r.s1 *= r.s2;
-	r.s2 += r.s1 - 8;
-	r.s3 ^= r6;
-	r.s1 *= r.s0;
-	r.s1 ^= r4;
-	r.s3 += r.s2 - 76;
-	r.s0 ^= r4;
-	r.s0 *= r.s0;
-	r.s2 *= r.s2;
-	r.s0 *= r4;
-	r.s2 *= r.s2;
-	r.s0 = rotate(r.s0, ROT_BITS - r5);
-	r.s2 ^= r.s0;
-	r.s0 *= r5;
-	r.s3 = rotate(r.s3, r5);
-	r.s2 *= r.s0;
-	r.s1 = rotate(r.s1, r6);
-	r.s1 -= r6;
-	r.s1 -= r6;
-	r.s0 -= r7;
-	r.s3 -= r5;
-	r.s3 = rotate(r.s3, r5);
-	r.s3 += r6 - 38;
-	r.s3 += r5 - 68;
-	r.s3 = rotate(r.s3, ROT_BITS - r5);
-	r.s0 *= r.s2;
-	r.s1 = rotate(r.s1, r.s3);
-	r.s2 *= r5;
-	r.s3 -= r.s1;
-	r.s1 = rotate(r.s1, ROT_BITS - r6);
+	XMRIG_INCLUDE_RANDOM_MATH
 
         ulong2 t;
         t.s0 = mul_hi(as_ulong2(c).s0, as_ulong2(tmp).s0);
