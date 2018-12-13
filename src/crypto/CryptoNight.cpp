@@ -87,26 +87,26 @@ CryptoNight::cn_hash_fun CryptoNight::fn(xmrig::Algo algorithm, xmrig::AlgoVerif
         cryptonight_single_hash<CRYPTONIGHT, false, VARIANT_RTO>,
         cryptonight_single_hash<CRYPTONIGHT, true,  VARIANT_RTO>,
 
-        cryptonight_single_hash<CRYPTONIGHT, false, VARIANT_2>,
 #       ifdef XMRIG_NO_ASM
-        cryptonight_single_hash<CRYPTONIGHT, true, VARIANT_2>,
+        cryptonight_single_hash<CRYPTONIGHT, false, VARIANT_2>,
 #       else
         cryptonight_single_hash_asm<CRYPTONIGHT, VARIANT_2, ASM_AUTO>,
 #       endif
+        cryptonight_single_hash<CRYPTONIGHT, true, VARIANT_2>,
 
-        cryptonight_single_hash<CRYPTONIGHT, false, VARIANT_4>,
 #       ifdef XMRIG_NO_ASM
-        cryptonight_single_hash<CRYPTONIGHT, true, VARIANT_4>,
+        cryptonight_single_hash<CRYPTONIGHT, false, VARIANT_4>,
 #       else
         cryptonight_single_hash_asm<CRYPTONIGHT, VARIANT_4, ASM_AUTO>,
 #       endif
+        cryptonight_single_hash<CRYPTONIGHT, true, VARIANT_4>,
 
-        cryptonight_single_hash<CRYPTONIGHT, false, VARIANT_4_64>,
 #       ifdef XMRIG_NO_ASM
-        cryptonight_single_hash<CRYPTONIGHT, true, VARIANT_4_64>,
+        cryptonight_single_hash<CRYPTONIGHT, false, VARIANT_4_64>,
 #       else
         cryptonight_single_hash_asm<CRYPTONIGHT, VARIANT_4_64, ASM_AUTO>,
 #       endif
+        cryptonight_single_hash<CRYPTONIGHT, true, VARIANT_4_64>,
 
 #       ifndef XMRIG_NO_AEON
         cryptonight_single_hash<CRYPTONIGHT_LITE, false, VARIANT_0>,
