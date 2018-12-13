@@ -48,7 +48,7 @@
             "mem_chunk": 2,
             "unroll_factor": 8,
             "comp_mode": false,
-            "affine_to_cpu": 0
+            "affine_to_cpu": 2
         },
     ],
     "user-agent": null,
