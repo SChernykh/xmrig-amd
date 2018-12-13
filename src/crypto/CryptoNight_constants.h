@@ -163,13 +163,14 @@ template<> inline constexpr Variant cn_base_variant<VARIANT_XHV>()   { return VA
 template<> inline constexpr Variant cn_base_variant<VARIANT_XAO>()   { return VARIANT_0; }
 template<> inline constexpr Variant cn_base_variant<VARIANT_RTO>()   { return VARIANT_1; }
 template<> inline constexpr Variant cn_base_variant<VARIANT_2>()     { return VARIANT_2; }
-template<> inline constexpr Variant cn_base_variant<VARIANT_4>() { return VARIANT_4; }
-template<> inline constexpr Variant cn_base_variant<VARIANT_4_64>() { return VARIANT_4_64; }
+template<> inline constexpr Variant cn_base_variant<VARIANT_4>()     { return VARIANT_4; }
+template<> inline constexpr Variant cn_base_variant<VARIANT_4_64>()  { return VARIANT_4_64; }
 
-template<Variant variant> inline constexpr bool cn_use_shuffle() { return false; }
-template<> inline constexpr bool cn_use_shuffle<VARIANT_2>() { return true; }
-template<> inline constexpr bool cn_use_shuffle<VARIANT_4>() { return true; }
-template<> inline constexpr bool cn_use_shuffle<VARIANT_4_64>() { return true; }
+template<Variant variant> inline constexpr bool cn_use_shuffle()     { return false; }
+template<> inline constexpr bool cn_use_shuffle<VARIANT_2>()         { return true; }
+template<> inline constexpr bool cn_use_shuffle<VARIANT_4>()         { return true; }
+template<> inline constexpr bool cn_use_shuffle<VARIANT_4_64>()      { return true; }
+
 
 } /* namespace xmrig */
 

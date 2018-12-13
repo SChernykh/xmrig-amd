@@ -496,7 +496,7 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
         else if (SOFT_AES) {
             cx = soft_aesenc((uint32_t*)&l0[idx0 & MASK], ax0);
         }
-        else {  
+        else {
             cx = _mm_aesenc_si128(cx, ax0);
         }
 
@@ -571,6 +571,7 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
 #ifndef XMRIG_NO_ASM
 extern "C" void cnv2_mainloop_ivybridge_asm(cryptonight_ctx *ctx);
 extern "C" void cnv2_mainloop_ryzen_asm(cryptonight_ctx *ctx);
+extern "C" void cnv2_mainloop_bulldozer_asm(cryptonight_ctx *ctx);
 extern "C" void cnv2_double_mainloop_sandybridge_asm(cryptonight_ctx* ctx0, cryptonight_ctx* ctx1);
 void v4_compile_code(const V4_Instruction* code, int code_size, void* machine_code);
 void v4_64_compile_code(const V4_Instruction* code, int code_size, void* machine_code);
@@ -603,8 +604,11 @@ inline void cryptonight_single_hash_asm(const uint8_t *__restrict__ input, size_
         if (ASM == xmrig::ASM_INTEL) {
             cnv2_mainloop_ivybridge_asm(ctx[0]);
         }
-        else {
+        else if (ASM == xmrig::ASM_RYZEN) {
             cnv2_mainloop_ryzen_asm(ctx[0]);
+        }
+        else {
+            cnv2_mainloop_bulldozer_asm(ctx[0]);
         }
     }
     else if (VARIANT == xmrig::VARIANT_4) {
