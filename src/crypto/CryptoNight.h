@@ -34,9 +34,27 @@
 #include "crypto/CryptoNight_constants.h"
 
 
+#ifdef _MSC_VER
+#define ABI_ATTRIBUTE
+#else
+#define ABI_ATTRIBUTE __attribute__((ms_abi))
+#endif
+
+struct cryptonight_ctx;
+typedef void(*cn_mainloop_fun)(cryptonight_ctx*) ABI_ATTRIBUTE;
+typedef void(*cn_mainloop_double_fun)(cryptonight_ctx*, cryptonight_ctx*) ABI_ATTRIBUTE;
+
 struct cryptonight_ctx {
     alignas(16) uint8_t state[224];
     alignas(16) uint8_t *memory;
+    cn_mainloop_fun generated_code;
+    cn_mainloop_fun generated_code64;
+    cn_mainloop_double_fun generated_code_double;
+    cn_mainloop_double_fun generated_code64_double;
+    uint64_t generated_code_height;
+    uint64_t generated_code64_height;
+    uint64_t generated_code_double_height;
+    uint64_t generated_code64_double_height;
 };
 
 
@@ -54,8 +72,6 @@ public:
     static bool hash(const Job &job, JobResult &result, cryptonight_ctx *ctx);
     static bool init(xmrig::Algo algorithm);
     static cn_hash_fun fn(xmrig::Algo algorithm, xmrig::AlgoVerify av, xmrig::Variant variant);
-    static cryptonight_ctx *createCtx(xmrig::Algo algorithm);
-    static void freeCtx(cryptonight_ctx *ctx);
 
 private:
     static bool selfTest();

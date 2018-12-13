@@ -29,7 +29,7 @@
 
 #include "common/cpu/Cpu.h"
 #include "common/net/Job.h"
-#include "common/utils/mm_malloc.h"
+#include "Mem.h"
 #include "crypto/CryptoNight.h"
 #include "crypto/CryptoNight_test.h"
 #include "crypto/CryptoNight_x86.h"
@@ -54,11 +54,7 @@ bool CryptoNight::init(xmrig::Algo algorithm)
     m_algorithm = algorithm;
     m_av        = xmrig::Cpu::info()->hasAES() ? xmrig::VERIFY_HW_AES : xmrig::VERIFY_SOFT_AES;
 
-    const bool valid = selfTest();
-    freeCtx(m_ctx);
-    m_ctx = nullptr;
-
-    return valid;
+    return selfTest();
 }
 
 
@@ -92,13 +88,25 @@ CryptoNight::cn_hash_fun CryptoNight::fn(xmrig::Algo algorithm, xmrig::AlgoVerif
         cryptonight_single_hash<CRYPTONIGHT, true,  VARIANT_RTO>,
 
         cryptonight_single_hash<CRYPTONIGHT, false, VARIANT_2>,
-        cryptonight_single_hash<CRYPTONIGHT, true,  VARIANT_2>,
+#       ifdef XMRIG_NO_ASM
+        cryptonight_single_hash<CRYPTONIGHT, true, VARIANT_2>,
+#       else
+        cryptonight_single_hash_asm<CRYPTONIGHT, VARIANT_2, ASM_AUTO>,
+#       endif
 
         cryptonight_single_hash<CRYPTONIGHT, false, VARIANT_4>,
-        cryptonight_single_hash<CRYPTONIGHT, true,  VARIANT_4>,
+#       ifdef XMRIG_NO_ASM
+        cryptonight_single_hash<CRYPTONIGHT, true, VARIANT_4>,
+#       else
+        cryptonight_single_hash_asm<CRYPTONIGHT, VARIANT_4, ASM_AUTO>,
+#       endif
 
         cryptonight_single_hash<CRYPTONIGHT, false, VARIANT_4_64>,
-        cryptonight_single_hash<CRYPTONIGHT, true,  VARIANT_4_64>,
+#       ifdef XMRIG_NO_ASM
+        cryptonight_single_hash<CRYPTONIGHT, true, VARIANT_4_64>,
+#       else
+        cryptonight_single_hash_asm<CRYPTONIGHT, VARIANT_4_64, ASM_AUTO>,
+#       endif
 
 #       ifndef XMRIG_NO_AEON
         cryptonight_single_hash<CRYPTONIGHT_LITE, false, VARIANT_0>,
@@ -170,26 +178,10 @@ CryptoNight::cn_hash_fun CryptoNight::fn(xmrig::Algo algorithm, xmrig::AlgoVerif
 }
 
 
-cryptonight_ctx *CryptoNight::createCtx(xmrig::Algo algorithm)
-{
-    cryptonight_ctx *ctx = static_cast<cryptonight_ctx *>(_mm_malloc(sizeof(cryptonight_ctx), 16));
-    ctx->memory          = static_cast<uint8_t *>(_mm_malloc(xmrig::cn_select_memory(algorithm), 16));
-
-    return ctx;
-}
-
-
-void CryptoNight::freeCtx(cryptonight_ctx *ctx)
-{
-    _mm_free(ctx->memory);
-    _mm_free(ctx);
-}
-
-
 bool CryptoNight::selfTest() {
     using namespace xmrig;
 
-    m_ctx = createCtx(m_algorithm);
+    MemInfo info = Mem::create(&m_ctx, m_algorithm, 1);
 
     if (m_algorithm == xmrig::CRYPTONIGHT) {
         return verify2(VARIANT_4, test_input_R) &&
@@ -217,6 +209,9 @@ bool CryptoNight::selfTest() {
                verify(VARIANT_TUBE, test_output_tube_heavy);
     }
 #   endif
+
+    Mem::release(&m_ctx, 1, info);
+    m_ctx = nullptr;
 
     return false;
 }
