@@ -356,7 +356,7 @@ void Workers::onResult(uv_async_t *handle)
 
             for (const JobResult &result : baton->results) {
 #ifdef XMRIG_TEST_CRYPTONIGHT_R
-                LOG_NOTICE("THREAD #%d OK", baton->jobs[0].threadId());
+                LOG_NOTICE("THREAD #%d found a share (test mode, not submitted)", baton->jobs[0].threadId());
 #else
                 m_listener->onJobResult(result);
 #endif
