@@ -17,8 +17,8 @@
     "opencl-loader": "OpenCL.dll",
     "pools": [
         {
-            "url": "monero.ingest.cryptoknight.cc:4441",
-            "user": "43QGgipcHvNLBX3nunZLwVQpF6VbobmGcQKzXzQ5xMfJgzfRBzfXcJHX1tUHcKPm9bcjubrzKqTm69JbQSL4B3f6E3mNCbU",
+            "url": "killallasics.moneroworld.com:7777",
+            "user": "9v4vTVwqZzfjCFyPi7b9Uv1hHntJxycC4XvRyEscqwtq8aycw5xGpTxFyasurgf2KRBfbdAJY4AVcemL1JCegXU4EZfMtaz",
             "pass": "x",
             "rig-id": null,
             "nicehash": false,
