@@ -8,6 +8,7 @@ option(WITH_TLS       "Enable OpenSSL support" ON)
 option(WITH_ASM       "Enable ASM PoW implementations" ON)
 option(STRICT_CACHE   "Enable strict checks for OpenCL cache" ON)
 option(BUILD_STATIC   "Build static binary" OFF)
+option(TEST_CN_R      "Test mode for Cryptonight R" ON)
 
 option(WITH_DEBUG_LOG            "Enable debug log output, network, etc" OFF)
 option(WITH_INTERLEAVE_DEBUG_LOG "Enable debug log for threads interleave" ON)
@@ -202,7 +203,9 @@ add_definitions(/D__STDC_FORMAT_MACROS)
 add_definitions(/DUNICODE)
 add_definitions(/DXMRIG_AMD_PROJECT)
 add_definitions(/DXMRIG_NO_LIBCPUID)
-add_definitions(/DXMRIG_TEST_CRYPTONIGHT_R)
+if (TEST_CN_R)
+    add_definitions(/DXMRIG_TEST_CRYPTONIGHT_R)
+endif()
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
