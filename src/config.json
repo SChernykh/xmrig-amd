@@ -1,5 +1,5 @@
 {
-    "algo": "cryptonight/r",
+    "algo": "cryptonight",
     "api": {
         "port": 0,
         "access-token": null,
@@ -17,8 +17,8 @@
     "opencl-loader": "OpenCL.dll",
     "pools": [
         {
-            "url": "killallasics.moneroworld.com:7777",
-            "user": "9v4vTVwqZzfjCFyPi7b9Uv1hHntJxycC4XvRyEscqwtq8aycw5xGpTxFyasurgf2KRBfbdAJY4AVcemL1JCegXU4EZfMtaz",
+            "url": "testnet.wowne.ro:3333",
+            "user": "9z28UvRjQmNDUfnVKJ39jkDHMf3cZvKoMQK7i4UrQtjPcALqZncKYrVNn2G8MsHbQw85uYiQg4XsDPWkMTiPMcQkNpPLRP3",
             "pass": "x",
             "rig-id": null,
             "nicehash": false,
