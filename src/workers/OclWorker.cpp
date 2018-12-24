@@ -158,7 +158,7 @@ void OclWorker::start()
                 const int64_t t0 = xmrig::steadyTimestamp();
                 for (size_t i = 0; i < MAX_DEVICE_COUNT; ++i)
                 {
-                    if (!GPUThreadInterleaveData[i].finished && (t0 - GPUThreadInterleaveData[i].lastRunTimeStamp > 10000))
+                    if (GPUThreadInterleaveData[i].tested && !GPUThreadInterleaveData[i].finished && (t0 - GPUThreadInterleaveData[i].lastRunTimeStamp > 10000))
                     {
                         LOG_ERR("GPU_%zu_0000_%.2x_%.2x.%.1x is stuck", i, (int)GPUThreadInterleaveData[i].topology.pcie.bus, (int)GPUThreadInterleaveData[i].topology.pcie.device, (int)GPUThreadInterleaveData[i].topology.pcie.function);
                     }
