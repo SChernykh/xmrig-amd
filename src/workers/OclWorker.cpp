@@ -57,6 +57,7 @@ static struct SGPUThreadInterleaveData
     
     bool passed = true;
     bool tested = false;
+    bool stuck = false;
     bool finished = false;
     cl_device_topology_amd topology;
 } GPUThreadInterleaveData[MAX_DEVICE_COUNT];
@@ -158,9 +159,22 @@ void OclWorker::start()
                 const int64_t t0 = xmrig::steadyTimestamp();
                 for (size_t i = 0; i < MAX_DEVICE_COUNT; ++i)
                 {
-                    if (GPUThreadInterleaveData[i].tested && !GPUThreadInterleaveData[i].finished && (t0 - GPUThreadInterleaveData[i].lastRunTimeStamp > 10000))
+                    if (GPUThreadInterleaveData[i].tested && !GPUThreadInterleaveData[i].finished && !GPUThreadInterleaveData[i].stuck && (t0 - GPUThreadInterleaveData[i].lastRunTimeStamp > 10000))
                     {
+                        GPUThreadInterleaveData[i].stuck = true;
+                        --ThreadCounter;
+                        TestPassed = false;
+
                         LOG_ERR("GPU_%zu_0000_%.2x_%.2x.%.1x is stuck", i, (int)GPUThreadInterleaveData[i].topology.pcie.bus, (int)GPUThreadInterleaveData[i].topology.pcie.device, (int)GPUThreadInterleaveData[i].topology.pcie.function);
+                        char buf[256];
+                        sprintf(buf, "GPU_%zu_0000_%.2x_%.2x.%.1x_failed_%d.txt", i, (int)GPUThreadInterleaveData[i].topology.pcie.bus, (int)GPUThreadInterleaveData[i].topology.pcie.device, (int)GPUThreadInterleaveData[i].topology.pcie.function, TestSpeed);
+                        {
+                            std::ofstream f(buf);
+                            f << TestSpeed << std::endl;
+                            f.close();
+                        }
+                        sprintf(buf, "GPU_%zu_0000_%.2x_%.2x.%.1x_passed.txt", i, (int)GPUThreadInterleaveData[i].topology.pcie.bus, (int)GPUThreadInterleaveData[i].topology.pcie.device, (int)GPUThreadInterleaveData[i].topology.pcie.function);
+                        remove(buf);
                     }
                 }
 
