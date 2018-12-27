@@ -12,7 +12,6 @@
 static std::string get_code(const V4_Instruction* code, int code_size)
 {
     std::stringstream s;
-	uint32_t prev_rot_src = (uint32_t)(-1);
 
 	for (int i = 0; i < code_size; ++i)
     {
@@ -44,10 +43,6 @@ static std::string get_code(const V4_Instruction* code, int code_size)
 		case ROR:
         case ROL:
             s << 'r' << a << "=rotate(r" << a << ((inst.opcode == ROR) ? ",ROT_BITS-r" : ",r") << b << ");";
-			if (b != prev_rot_src)
-            {
-				prev_rot_src = b;
-			}
 			break;
 
 		case XOR:
@@ -56,11 +51,6 @@ static std::string get_code(const V4_Instruction* code, int code_size)
 		}
 
 		s << '\n';
-
-        if (a == prev_rot_src)
-        {
-			prev_rot_src = (uint32_t)(-1);
-		}
 	}
 
     return s.str();
