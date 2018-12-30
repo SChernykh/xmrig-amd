@@ -182,7 +182,7 @@
     r64_##part[5] = ah; \
     r64_##part[6] = static_cast<uint64_t>(_mm_cvtsi128_si64(bx0)); \
     r64_##part[7] = static_cast<uint64_t>(_mm_cvtsi128_si64(bx1)); \
-    v4_64_random_math(code##part, code_size##part, r64_##part); \
+    v4_random_math(code##part, code_size##part, r64_##part); \
   }
 
 #endif /* XMRIG_CRYPTONIGHT_MONERO_H */
