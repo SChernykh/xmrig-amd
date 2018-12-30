@@ -209,7 +209,7 @@ static cl_program CryptonightR_build_program(
     {
         OclLib::releaseProgram(program);
         LOG_ERR("CryptonightR: wait_build returned error %s", OclError::toString(ret));
-        return false;
+        return nullptr;
     }
 
     //LOG_INFO("CryptonightR: program for height %llu compiled", height);
