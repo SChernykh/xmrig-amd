@@ -59,15 +59,17 @@ static std::string get_code(const V4_Instruction* code, int code_size)
 
 struct CacheEntry
 {
-    CacheEntry(xmrig::Variant variant, uint64_t height, std::string&& hash, cl_program program) :
+    CacheEntry(xmrig::Variant variant, uint64_t height, size_t deviceIdx, std::string&& hash, cl_program program) :
         variant(variant),
         height(height),
+        deviceIdx(deviceIdx),
         hash(std::move(hash)),
         program(program)
     {}
 
     xmrig::Variant variant;
     uint64_t height;
+    size_t deviceIdx;
     std::string hash;
     cl_program program;
 };
@@ -175,7 +177,7 @@ static cl_program CryptonightR_build_program(
         // Check if the cache already has this program (some other thread might have added it first)
         for (const CacheEntry& entry : CryptonightR_cache)
         {
-            if ((entry.variant == variant) && (entry.height == height) && (entry.hash == hash))
+            if ((entry.variant == variant) && (entry.height == height) && (entry.deviceIdx == ctx->deviceIdx) && (entry.hash == hash))
             {
                 program = entry.program;
                 break;
@@ -216,7 +218,7 @@ static cl_program CryptonightR_build_program(
 
     {
         std::lock_guard<std::mutex> g(CryptonightR_cache_mutex);
-        CryptonightR_cache.emplace_back(variant, height, std::move(hash), program);
+        CryptonightR_cache.emplace_back(variant, height, ctx->deviceIdx, std::move(hash), program);
     }
     return program;
 }
@@ -274,7 +276,7 @@ cl_program CryptonightR_get_program(GpuContext* ctx, xmrig::Variant variant, uin
         // Check if the cache has this program
         for (const CacheEntry& entry : CryptonightR_cache)
         {
-            if ((entry.variant == variant) && (entry.height == height) && (entry.hash == hash))
+            if ((entry.variant == variant) && (entry.height == height) && (entry.deviceIdx == ctx->deviceIdx) && (entry.hash == hash))
             {
                 //LOG_INFO("CryptonightR: program for height %llu found in cache", height);
                 return entry.program;
