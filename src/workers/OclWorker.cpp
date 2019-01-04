@@ -141,6 +141,12 @@ void OclWorker::start()
                     f << TestSpeed << std::endl;
                     f.close();
                 }
+                sprintf(buf, "GPU_%zu_failed.txt", m_ctx->deviceIdx);
+                {
+                    std::ofstream f(buf);
+                    f << TestSpeed << std::endl;
+                    f.close();
+                }
                 sprintf(buf, "GPU_%zu_0000_%.2x_%.2x.%.1x_passed.txt", m_ctx->deviceIdx, (int)topology.pcie.bus, (int)topology.pcie.device, (int)topology.pcie.function);
                 remove(buf);
             }
@@ -168,6 +174,12 @@ void OclWorker::start()
                         LOG_ERR("GPU_%zu_0000_%.2x_%.2x.%.1x is stuck", i, (int)GPUThreadInterleaveData[i].topology.pcie.bus, (int)GPUThreadInterleaveData[i].topology.pcie.device, (int)GPUThreadInterleaveData[i].topology.pcie.function);
                         char buf[256];
                         sprintf(buf, "GPU_%zu_0000_%.2x_%.2x.%.1x_failed_%d.txt", i, (int)GPUThreadInterleaveData[i].topology.pcie.bus, (int)GPUThreadInterleaveData[i].topology.pcie.device, (int)GPUThreadInterleaveData[i].topology.pcie.function, TestSpeed);
+                        {
+                            std::ofstream f(buf);
+                            f << TestSpeed << std::endl;
+                            f.close();
+                        }
+                        sprintf(buf, "GPU_%zu_failed.txt", i);
                         {
                             std::ofstream f(buf);
                             f << TestSpeed << std::endl;
