@@ -38,7 +38,7 @@ CryptonightR_template_part1:
 	movd	xmm0, r12
 	movaps	XMMWORD PTR [rsp+32], xmm7
 	movaps	XMMWORD PTR [rsp+16], xmm8
-	movaps	XMMWORD PTR [rsp+16], xmm9
+	movaps	XMMWORD PTR [rsp], xmm9
 	mov	r12, QWORD PTR [rdx+88]
 	xor	r12, QWORD PTR [rdx+72]
 	movd	xmm6, rax
