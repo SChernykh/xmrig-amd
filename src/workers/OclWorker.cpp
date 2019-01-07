@@ -45,6 +45,8 @@
 
 #define MAX_DEVICE_COUNT 32
 
+#define DETECT_STUCK_GPUS 0
+
 
 static struct SGPUThreadInterleaveData
 {
@@ -57,7 +59,9 @@ static struct SGPUThreadInterleaveData
     
     bool passed = true;
     bool tested = false;
+#if DETECT_STUCK_GPUS
     bool stuck = false;
+#endif
     bool finished = false;
     cl_device_topology_amd topology;
 } GPUThreadInterleaveData[MAX_DEVICE_COUNT];
@@ -162,6 +166,7 @@ void OclWorker::start()
                 k = --ThreadCounter;
                 interleaveData.finished = true;
 
+#if DETECT_STUCK_GPUS
                 const int64_t t0 = xmrig::steadyTimestamp();
                 for (size_t i = 0; i < MAX_DEVICE_COUNT; ++i)
                 {
@@ -189,6 +194,7 @@ void OclWorker::start()
                         remove(buf);
                     }
                 }
+#endif
 
                 if (k <= 0)
                 {
