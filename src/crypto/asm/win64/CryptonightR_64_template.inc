@@ -91,13 +91,12 @@ CryptonightR_64_template_mainloop:
 	pxor	xmm0, xmm6
 	movdqu	XMMWORD PTR [rdx], xmm0
 
-	lea	rax, [rbx+rsi]
+	lea	r13, [rbx+rsi]
 	lea	rdx, [rdi+rbp]
-	xor	rax, rdx
+	xor	r13, rdx
 
-	mov	r13, QWORD PTR [r10+r11]
+	xor	r13, QWORD PTR [r10+r11]
 	mov	r14, QWORD PTR [r10+r11+8]
-	xor	r13, rax
 
 	movd rax, xmm6
 	movd rdx, xmm7

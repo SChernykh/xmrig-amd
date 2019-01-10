@@ -23,18 +23,12 @@ static std::string get_code(const V4_Instruction* code, int code_size)
 
 		switch (inst.opcode)
         {
-		case MUL1:
-		case MUL2:
-		case MUL3:
+		case MUL:
 			s << 'r' << a << "*=r" << b << ';';
 			break;
 
 		case ADD:
-			{
-				const int c = reinterpret_cast<const int8_t*>(code)[++i];
-                s << 'r' << a << "+=r" << b << ((c < 0) ? '-' : '+');
-				s << ((c < 0) ? -c : c) << ';';
-			}
+            s << 'r' << a << "+=r" << b << '+' << inst.C << "U;";
 			break;
 
 		case SUB:

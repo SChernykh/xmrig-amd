@@ -154,7 +154,6 @@
   uint32_t r##part[8]; \
   uint64_t r64_##part[8]; \
   struct V4_Instruction code##part[256]; \
-  int code_size##part; \
   if (VARIANT == xmrig::VARIANT_4) { \
     r##part[0] = (uint32_t)(h##part[12]); \
     r##part[1] = (uint32_t)(h##part[12] >> 32); \
@@ -166,7 +165,7 @@
     r64_##part[2] = h##part[14]; \
     r64_##part[3] = h##part[15]; \
   } \
-  code_size##part = v4_random_math_init(code##part, height);
+  v4_random_math_init(code##part, height);
 
 #define VARIANT4_RANDOM_MATH(part, al, ah, cl, bx0, bx1) \
   if (VARIANT == xmrig::VARIANT_4) { \
@@ -175,14 +174,14 @@
     r##part[5] = static_cast<uint32_t>(ah); \
     r##part[6] = static_cast<uint32_t>(_mm_cvtsi128_si32(bx0)); \
     r##part[7] = static_cast<uint32_t>(_mm_cvtsi128_si32(bx1)); \
-    v4_random_math(code##part, code_size##part, r##part); \
+    v4_random_math(code##part, r##part); \
   } else if (VARIANT == xmrig::VARIANT_4_64) { \
     cl ^= (r64_##part[0] + r64_##part[1]) ^ (r64_##part[2] + r64_##part[3]); \
     r64_##part[4] = al; \
     r64_##part[5] = ah; \
     r64_##part[6] = static_cast<uint64_t>(_mm_cvtsi128_si64(bx0)); \
     r64_##part[7] = static_cast<uint64_t>(_mm_cvtsi128_si64(bx1)); \
-    v4_random_math(code##part, code_size##part, r64_##part); \
+    v4_random_math(code##part, r64_##part); \
   }
 
 #endif /* XMRIG_CRYPTONIGHT_MONERO_H */

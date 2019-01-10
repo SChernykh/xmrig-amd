@@ -18,32 +18,43 @@ static inline void add_code(uint8_t* &p, void (*p1)(), void (*p2)())
     }
 }
 
-static inline void add_random_math(uint8_t* &p, const V4_Instruction* code, int code_size, const void_func* instructions, const void_func* instructions_mov)
+static inline void add_random_math(uint8_t* &p, const V4_Instruction* code, int code_size, const void_func* instructions, const void_func* instructions_mov, bool is_64_bit)
 {
     uint32_t prev_rot_src = (uint32_t)(-1);
-    const uint8_t* code1 = reinterpret_cast<const uint8_t*>(code);
 
-    for (int i = 0; i < code_size; ++i) {
+    for (int i = 0;; ++i) {
         const V4_Instruction inst = code[i];
+        if (inst.opcode == RET) {
+            break;
+        }
+
+        V4_InstructionCompact op;
+        op.opcode = (inst.opcode == MUL) ? inst.opcode : (inst.opcode + 2);
+        op.dst_index = inst.dst_index;
+        op.src_index = inst.src_index;
+
+        const uint32_t a = inst.dst_index;
+        const uint32_t b = inst.src_index;
+        const uint8_t c = *reinterpret_cast<const uint8_t*>(&op);
 
         switch (inst.opcode) {
         case ROR:
         case ROL:
-            if (inst.src_index != prev_rot_src) {
-                prev_rot_src = inst.src_index;
-                add_code(p, instructions_mov[code1[i]], instructions_mov[code1[i] + 1]);
+            if (b != prev_rot_src) {
+                prev_rot_src = b;
+                add_code(p, instructions_mov[c], instructions_mov[c + 1]);
             }
             break;
         }
 
-        if (inst.dst_index == prev_rot_src) {
+        if (a == prev_rot_src) {
             prev_rot_src = (uint32_t)(-1);
         }
 
-        add_code(p, instructions[code1[i]], instructions[code1[i] + 1]);
+        add_code(p, instructions[c], instructions[c + 1]);
 
         if (inst.opcode == ADD) {
-            *(p - 1) = code1[++i];
+            *(uint32_t*)(p - sizeof(uint32_t) - (is_64_bit ? 3 : 0)) = inst.C;
         }
     }
 }
@@ -54,7 +65,7 @@ void v4_compile_code(const V4_Instruction* code, int code_size, void* machine_co
     uint8_t* p = p0;
 
     add_code(p, CryptonightR_template_part1, CryptonightR_template_part2);
-    add_random_math(p, code, code_size, instructions, instructions_mov);
+    add_random_math(p, code, code_size, instructions, instructions_mov, false);
     add_code(p, CryptonightR_template_part2, CryptonightR_template_part3);
     *(int*)(p - 4) = static_cast<int>((((const uint8_t*)CryptonightR_template_mainloop) - ((const uint8_t*)CryptonightR_template_part1)) - (p - p0));
     add_code(p, CryptonightR_template_part3, CryptonightR_template_end);
@@ -68,7 +79,7 @@ void v4_64_compile_code(const V4_Instruction* code, int code_size, void* machine
     uint8_t* p = p0;
 
     add_code(p, CryptonightR_64_template_part1, CryptonightR_64_template_part2);
-    add_random_math(p, code, code_size, instructions_64, instructions_64_mov);
+    add_random_math(p, code, code_size, instructions_64, instructions_64_mov, true);
     add_code(p, CryptonightR_64_template_part2, CryptonightR_64_template_part3);
     *(int*)(p - 4) = static_cast<int>((((const uint8_t*)CryptonightR_64_template_mainloop) - ((const uint8_t*)CryptonightR_64_template_part1)) - (p - p0));
     add_code(p, CryptonightR_64_template_part3, CryptonightR_64_template_end);
@@ -82,9 +93,9 @@ void v4_compile_code_double(const V4_Instruction* code, int code_size, void* mac
     uint8_t* p = p0;
 
     add_code(p, CryptonightR_template_double_part1, CryptonightR_template_double_part2);
-    add_random_math(p, code, code_size, instructions, instructions_mov);
+    add_random_math(p, code, code_size, instructions, instructions_mov, false);
     add_code(p, CryptonightR_template_double_part2, CryptonightR_template_double_part3);
-    add_random_math(p, code, code_size, instructions, instructions_mov);
+    add_random_math(p, code, code_size, instructions, instructions_mov, false);
     add_code(p, CryptonightR_template_double_part3, CryptonightR_template_double_part4);
     *(int*)(p - 4) = static_cast<int>((((const uint8_t*)CryptonightR_template_double_mainloop) - ((const uint8_t*)CryptonightR_template_double_part1)) - (p - p0));
     add_code(p, CryptonightR_template_double_part4, CryptonightR_template_double_end);
@@ -98,9 +109,9 @@ void v4_64_compile_code_double(const V4_Instruction* code, int code_size, void* 
     uint8_t* p = p0;
 
     add_code(p, CryptonightR_64_template_double_part1, CryptonightR_64_template_double_part2);
-    add_random_math(p, code, code_size, instructions_64, instructions_64_mov);
+    add_random_math(p, code, code_size, instructions_64, instructions_64_mov, true);
     add_code(p, CryptonightR_64_template_double_part2, CryptonightR_64_template_double_part3);
-    add_random_math(p, code, code_size, instructions_64, instructions_64_mov);
+    add_random_math(p, code, code_size, instructions_64, instructions_64_mov, true);
     add_code(p, CryptonightR_64_template_double_part3, CryptonightR_64_template_double_part4);
     *(int*)(p - 4) = static_cast<int>((((const uint8_t*)CryptonightR_64_template_double_mainloop) - ((const uint8_t*)CryptonightR_64_template_double_part1)) - (p - p0));
     add_code(p, CryptonightR_64_template_double_part4, CryptonightR_64_template_double_end);
