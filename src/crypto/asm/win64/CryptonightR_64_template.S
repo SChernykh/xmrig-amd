@@ -527,7 +527,9 @@ CryptonightR_64_instruction1:
 CryptonightR_64_instruction2:
 	imul	rbx, rbx
 CryptonightR_64_instruction3:
-	lea	rbx, [rbx+rbx+1]
+	add	rbx, rbx
+	mov ecx, 2147483647
+	add	rbx, rcx
 CryptonightR_64_instruction4:
 	sub	rbx, rbx
 CryptonightR_64_instruction5:
@@ -543,7 +545,9 @@ CryptonightR_64_instruction9:
 CryptonightR_64_instruction10:
 	imul	rsi, rbx
 CryptonightR_64_instruction11:
-	lea	rsi, [rsi+rbx+1]
+	add	rsi, rbx
+	mov ecx, 2147483647
+	add	rsi, rcx
 CryptonightR_64_instruction12:
 	sub	rsi, rbx
 CryptonightR_64_instruction13:
@@ -559,7 +563,9 @@ CryptonightR_64_instruction17:
 CryptonightR_64_instruction18:
 	imul	rdi, rbx
 CryptonightR_64_instruction19:
-	lea	rdi, [rdi+rbx+1]
+	add	rdi, rbx
+	mov ecx, 2147483647
+	add	rdi, rcx
 CryptonightR_64_instruction20:
 	sub	rdi, rbx
 CryptonightR_64_instruction21:
@@ -575,7 +581,9 @@ CryptonightR_64_instruction25:
 CryptonightR_64_instruction26:
 	imul	rbp, rbx
 CryptonightR_64_instruction27:
-	lea	rbp, [rbp+rbx+1]
+	add	rbp, rbx
+	mov ecx, 2147483647
+	add	rbp, rcx
 CryptonightR_64_instruction28:
 	sub	rbp, rbx
 CryptonightR_64_instruction29:
@@ -591,7 +599,9 @@ CryptonightR_64_instruction33:
 CryptonightR_64_instruction34:
 	imul	rbx, rsi
 CryptonightR_64_instruction35:
-	lea	rbx, [rbx+rsi+1]
+	add	rbx, rsi
+	mov ecx, 2147483647
+	add	rbx, rcx
 CryptonightR_64_instruction36:
 	sub	rbx, rsi
 CryptonightR_64_instruction37:
@@ -607,7 +617,9 @@ CryptonightR_64_instruction41:
 CryptonightR_64_instruction42:
 	imul	rsi, rsi
 CryptonightR_64_instruction43:
-	lea	rsi, [rsi+rsi+1]
+	add	rsi, rsi
+	mov ecx, 2147483647
+	add	rsi, rcx
 CryptonightR_64_instruction44:
 	sub	rsi, rsi
 CryptonightR_64_instruction45:
@@ -623,7 +635,9 @@ CryptonightR_64_instruction49:
 CryptonightR_64_instruction50:
 	imul	rdi, rsi
 CryptonightR_64_instruction51:
-	lea	rdi, [rdi+rsi+1]
+	add	rdi, rsi
+	mov ecx, 2147483647
+	add	rdi, rcx
 CryptonightR_64_instruction52:
 	sub	rdi, rsi
 CryptonightR_64_instruction53:
@@ -639,7 +653,9 @@ CryptonightR_64_instruction57:
 CryptonightR_64_instruction58:
 	imul	rbp, rsi
 CryptonightR_64_instruction59:
-	lea	rbp, [rbp+rsi+1]
+	add	rbp, rsi
+	mov ecx, 2147483647
+	add	rbp, rcx
 CryptonightR_64_instruction60:
 	sub	rbp, rsi
 CryptonightR_64_instruction61:
@@ -655,7 +671,9 @@ CryptonightR_64_instruction65:
 CryptonightR_64_instruction66:
 	imul	rbx, rdi
 CryptonightR_64_instruction67:
-	lea	rbx, [rbx+rdi+1]
+	add	rbx, rdi
+	mov ecx, 2147483647
+	add	rbx, rcx
 CryptonightR_64_instruction68:
 	sub	rbx, rdi
 CryptonightR_64_instruction69:
@@ -671,7 +689,9 @@ CryptonightR_64_instruction73:
 CryptonightR_64_instruction74:
 	imul	rsi, rdi
 CryptonightR_64_instruction75:
-	lea	rsi, [rsi+rdi+1]
+	add	rsi, rdi
+	mov ecx, 2147483647
+	add	rsi, rcx
 CryptonightR_64_instruction76:
 	sub	rsi, rdi
 CryptonightR_64_instruction77:
@@ -687,7 +707,9 @@ CryptonightR_64_instruction81:
 CryptonightR_64_instruction82:
 	imul	rdi, rdi
 CryptonightR_64_instruction83:
-	lea	rdi, [rdi+rdi+1]
+	add	rdi, rdi
+	mov ecx, 2147483647
+	add	rdi, rcx
 CryptonightR_64_instruction84:
 	sub	rdi, rdi
 CryptonightR_64_instruction85:
@@ -703,7 +725,9 @@ CryptonightR_64_instruction89:
 CryptonightR_64_instruction90:
 	imul	rbp, rdi
 CryptonightR_64_instruction91:
-	lea	rbp, [rbp+rdi+1]
+	add	rbp, rdi
+	mov ecx, 2147483647
+	add	rbp, rcx
 CryptonightR_64_instruction92:
 	sub	rbp, rdi
 CryptonightR_64_instruction93:
@@ -719,7 +743,9 @@ CryptonightR_64_instruction97:
 CryptonightR_64_instruction98:
 	imul	rbx, rbp
 CryptonightR_64_instruction99:
-	lea	rbx, [rbx+rbp+1]
+	add	rbx, rbp
+	mov ecx, 2147483647
+	add	rbx, rcx
 CryptonightR_64_instruction100:
 	sub	rbx, rbp
 CryptonightR_64_instruction101:
@@ -735,7 +761,9 @@ CryptonightR_64_instruction105:
 CryptonightR_64_instruction106:
 	imul	rsi, rbp
 CryptonightR_64_instruction107:
-	lea	rsi, [rsi+rbp+1]
+	add	rsi, rbp
+	mov ecx, 2147483647
+	add	rsi, rcx
 CryptonightR_64_instruction108:
 	sub	rsi, rbp
 CryptonightR_64_instruction109:
@@ -751,7 +779,9 @@ CryptonightR_64_instruction113:
 CryptonightR_64_instruction114:
 	imul	rdi, rbp
 CryptonightR_64_instruction115:
-	lea	rdi, [rdi+rbp+1]
+	add	rdi, rbp
+	mov ecx, 2147483647
+	add	rdi, rcx
 CryptonightR_64_instruction116:
 	sub	rdi, rbp
 CryptonightR_64_instruction117:
@@ -767,7 +797,9 @@ CryptonightR_64_instruction121:
 CryptonightR_64_instruction122:
 	imul	rbp, rbp
 CryptonightR_64_instruction123:
-	lea	rbp, [rbp+rbp+1]
+	add	rbp, rbp
+	mov ecx, 2147483647
+	add	rbp, rcx
 CryptonightR_64_instruction124:
 	sub	rbp, rbp
 CryptonightR_64_instruction125:
@@ -783,7 +815,9 @@ CryptonightR_64_instruction129:
 CryptonightR_64_instruction130:
 	imul	rbx, rsp
 CryptonightR_64_instruction131:
-	lea	rbx, [rbx+rsp+1]
+	add	rbx, rsp
+	mov ecx, 2147483647
+	add	rbx, rcx
 CryptonightR_64_instruction132:
 	sub	rbx, rsp
 CryptonightR_64_instruction133:
@@ -799,7 +833,9 @@ CryptonightR_64_instruction137:
 CryptonightR_64_instruction138:
 	imul	rsi, rsp
 CryptonightR_64_instruction139:
-	lea	rsi, [rsi+rsp+1]
+	add	rsi, rsp
+	mov ecx, 2147483647
+	add	rsi, rcx
 CryptonightR_64_instruction140:
 	sub	rsi, rsp
 CryptonightR_64_instruction141:
@@ -815,7 +851,9 @@ CryptonightR_64_instruction145:
 CryptonightR_64_instruction146:
 	imul	rdi, rsp
 CryptonightR_64_instruction147:
-	lea	rdi, [rdi+rsp+1]
+	add	rdi, rsp
+	mov ecx, 2147483647
+	add	rdi, rcx
 CryptonightR_64_instruction148:
 	sub	rdi, rsp
 CryptonightR_64_instruction149:
@@ -831,7 +869,9 @@ CryptonightR_64_instruction153:
 CryptonightR_64_instruction154:
 	imul	rbp, rsp
 CryptonightR_64_instruction155:
-	lea	rbp, [rbp+rsp+1]
+	add	rbp, rsp
+	mov ecx, 2147483647
+	add	rbp, rcx
 CryptonightR_64_instruction156:
 	sub	rbp, rsp
 CryptonightR_64_instruction157:
@@ -847,7 +887,9 @@ CryptonightR_64_instruction161:
 CryptonightR_64_instruction162:
 	imul	rbx, r15
 CryptonightR_64_instruction163:
-	lea	rbx, [rbx+r15+1]
+	add	rbx, r15
+	mov ecx, 2147483647
+	add	rbx, rcx
 CryptonightR_64_instruction164:
 	sub	rbx, r15
 CryptonightR_64_instruction165:
@@ -863,7 +905,9 @@ CryptonightR_64_instruction169:
 CryptonightR_64_instruction170:
 	imul	rsi, r15
 CryptonightR_64_instruction171:
-	lea	rsi, [rsi+r15+1]
+	add	rsi, r15
+	mov ecx, 2147483647
+	add	rsi, rcx
 CryptonightR_64_instruction172:
 	sub	rsi, r15
 CryptonightR_64_instruction173:
@@ -879,7 +923,9 @@ CryptonightR_64_instruction177:
 CryptonightR_64_instruction178:
 	imul	rdi, r15
 CryptonightR_64_instruction179:
-	lea	rdi, [rdi+r15+1]
+	add	rdi, r15
+	mov ecx, 2147483647
+	add	rdi, rcx
 CryptonightR_64_instruction180:
 	sub	rdi, r15
 CryptonightR_64_instruction181:
@@ -895,7 +941,9 @@ CryptonightR_64_instruction185:
 CryptonightR_64_instruction186:
 	imul	rbp, r15
 CryptonightR_64_instruction187:
-	lea	rbp, [rbp+r15+1]
+	add	rbp, r15
+	mov ecx, 2147483647
+	add	rbp, rcx
 CryptonightR_64_instruction188:
 	sub	rbp, r15
 CryptonightR_64_instruction189:
@@ -911,7 +959,9 @@ CryptonightR_64_instruction193:
 CryptonightR_64_instruction194:
 	imul	rbx, rax
 CryptonightR_64_instruction195:
-	lea	rbx, [rbx+rax+1]
+	add	rbx, rax
+	mov ecx, 2147483647
+	add	rbx, rcx
 CryptonightR_64_instruction196:
 	sub	rbx, rax
 CryptonightR_64_instruction197:
@@ -927,7 +977,9 @@ CryptonightR_64_instruction201:
 CryptonightR_64_instruction202:
 	imul	rsi, rax
 CryptonightR_64_instruction203:
-	lea	rsi, [rsi+rax+1]
+	add	rsi, rax
+	mov ecx, 2147483647
+	add	rsi, rcx
 CryptonightR_64_instruction204:
 	sub	rsi, rax
 CryptonightR_64_instruction205:
@@ -943,7 +995,9 @@ CryptonightR_64_instruction209:
 CryptonightR_64_instruction210:
 	imul	rdi, rax
 CryptonightR_64_instruction211:
-	lea	rdi, [rdi+rax+1]
+	add	rdi, rax
+	mov ecx, 2147483647
+	add	rdi, rcx
 CryptonightR_64_instruction212:
 	sub	rdi, rax
 CryptonightR_64_instruction213:
@@ -959,7 +1013,9 @@ CryptonightR_64_instruction217:
 CryptonightR_64_instruction218:
 	imul	rbp, rax
 CryptonightR_64_instruction219:
-	lea	rbp, [rbp+rax+1]
+	add	rbp, rax
+	mov ecx, 2147483647
+	add	rbp, rcx
 CryptonightR_64_instruction220:
 	sub	rbp, rax
 CryptonightR_64_instruction221:
@@ -975,7 +1031,9 @@ CryptonightR_64_instruction225:
 CryptonightR_64_instruction226:
 	imul	rbx, rdx
 CryptonightR_64_instruction227:
-	lea	rbx, [rbx+rdx+1]
+	add	rbx, rdx
+	mov ecx, 2147483647
+	add	rbx, rcx
 CryptonightR_64_instruction228:
 	sub	rbx, rdx
 CryptonightR_64_instruction229:
@@ -991,7 +1049,9 @@ CryptonightR_64_instruction233:
 CryptonightR_64_instruction234:
 	imul	rsi, rdx
 CryptonightR_64_instruction235:
-	lea	rsi, [rsi+rdx+1]
+	add	rsi, rdx
+	mov ecx, 2147483647
+	add	rsi, rcx
 CryptonightR_64_instruction236:
 	sub	rsi, rdx
 CryptonightR_64_instruction237:
@@ -1007,7 +1067,9 @@ CryptonightR_64_instruction241:
 CryptonightR_64_instruction242:
 	imul	rdi, rdx
 CryptonightR_64_instruction243:
-	lea	rdi, [rdi+rdx+1]
+	add	rdi, rdx
+	mov ecx, 2147483647
+	add	rdi, rcx
 CryptonightR_64_instruction244:
 	sub	rdi, rdx
 CryptonightR_64_instruction245:
@@ -1023,7 +1085,9 @@ CryptonightR_64_instruction249:
 CryptonightR_64_instruction250:
 	imul	rbp, rdx
 CryptonightR_64_instruction251:
-	lea	rbp, [rbp+rdx+1]
+	add	rbp, rdx
+	mov ecx, 2147483647
+	add	rbp, rcx
 CryptonightR_64_instruction252:
 	sub	rbp, rdx
 CryptonightR_64_instruction253:
@@ -1045,9 +1109,9 @@ CryptonightR_64_instruction_mov3:
 CryptonightR_64_instruction_mov4:
 
 CryptonightR_64_instruction_mov5:
-	mov	ecx, ebx
+	mov	rcx, rbx
 CryptonightR_64_instruction_mov6:
-	mov	ecx, ebx
+	mov	rcx, rbx
 CryptonightR_64_instruction_mov7:
 
 CryptonightR_64_instruction_mov8:
@@ -1061,9 +1125,9 @@ CryptonightR_64_instruction_mov11:
 CryptonightR_64_instruction_mov12:
 
 CryptonightR_64_instruction_mov13:
-	mov	ecx, ebx
+	mov	rcx, rbx
 CryptonightR_64_instruction_mov14:
-	mov	ecx, ebx
+	mov	rcx, rbx
 CryptonightR_64_instruction_mov15:
 
 CryptonightR_64_instruction_mov16:
@@ -1077,9 +1141,9 @@ CryptonightR_64_instruction_mov19:
 CryptonightR_64_instruction_mov20:
 
 CryptonightR_64_instruction_mov21:
-	mov	ecx, ebx
+	mov	rcx, rbx
 CryptonightR_64_instruction_mov22:
-	mov	ecx, ebx
+	mov	rcx, rbx
 CryptonightR_64_instruction_mov23:
 
 CryptonightR_64_instruction_mov24:
@@ -1093,9 +1157,9 @@ CryptonightR_64_instruction_mov27:
 CryptonightR_64_instruction_mov28:
 
 CryptonightR_64_instruction_mov29:
-	mov	ecx, ebx
+	mov	rcx, rbx
 CryptonightR_64_instruction_mov30:
-	mov	ecx, ebx
+	mov	rcx, rbx
 CryptonightR_64_instruction_mov31:
 
 CryptonightR_64_instruction_mov32:
@@ -1109,9 +1173,9 @@ CryptonightR_64_instruction_mov35:
 CryptonightR_64_instruction_mov36:
 
 CryptonightR_64_instruction_mov37:
-	mov	ecx, esi
+	mov	rcx, rsi
 CryptonightR_64_instruction_mov38:
-	mov	ecx, esi
+	mov	rcx, rsi
 CryptonightR_64_instruction_mov39:
 
 CryptonightR_64_instruction_mov40:
@@ -1125,9 +1189,9 @@ CryptonightR_64_instruction_mov43:
 CryptonightR_64_instruction_mov44:
 
 CryptonightR_64_instruction_mov45:
-	mov	ecx, esi
+	mov	rcx, rsi
 CryptonightR_64_instruction_mov46:
-	mov	ecx, esi
+	mov	rcx, rsi
 CryptonightR_64_instruction_mov47:
 
 CryptonightR_64_instruction_mov48:
@@ -1141,9 +1205,9 @@ CryptonightR_64_instruction_mov51:
 CryptonightR_64_instruction_mov52:
 
 CryptonightR_64_instruction_mov53:
-	mov	ecx, esi
+	mov	rcx, rsi
 CryptonightR_64_instruction_mov54:
-	mov	ecx, esi
+	mov	rcx, rsi
 CryptonightR_64_instruction_mov55:
 
 CryptonightR_64_instruction_mov56:
@@ -1157,9 +1221,9 @@ CryptonightR_64_instruction_mov59:
 CryptonightR_64_instruction_mov60:
 
 CryptonightR_64_instruction_mov61:
-	mov	ecx, esi
+	mov	rcx, rsi
 CryptonightR_64_instruction_mov62:
-	mov	ecx, esi
+	mov	rcx, rsi
 CryptonightR_64_instruction_mov63:
 
 CryptonightR_64_instruction_mov64:
@@ -1173,9 +1237,9 @@ CryptonightR_64_instruction_mov67:
 CryptonightR_64_instruction_mov68:
 
 CryptonightR_64_instruction_mov69:
-	mov	ecx, edi
+	mov	rcx, rdi
 CryptonightR_64_instruction_mov70:
-	mov	ecx, edi
+	mov	rcx, rdi
 CryptonightR_64_instruction_mov71:
 
 CryptonightR_64_instruction_mov72:
@@ -1189,9 +1253,9 @@ CryptonightR_64_instruction_mov75:
 CryptonightR_64_instruction_mov76:
 
 CryptonightR_64_instruction_mov77:
-	mov	ecx, edi
+	mov	rcx, rdi
 CryptonightR_64_instruction_mov78:
-	mov	ecx, edi
+	mov	rcx, rdi
 CryptonightR_64_instruction_mov79:
 
 CryptonightR_64_instruction_mov80:
@@ -1205,9 +1269,9 @@ CryptonightR_64_instruction_mov83:
 CryptonightR_64_instruction_mov84:
 
 CryptonightR_64_instruction_mov85:
-	mov	ecx, edi
+	mov	rcx, rdi
 CryptonightR_64_instruction_mov86:
-	mov	ecx, edi
+	mov	rcx, rdi
 CryptonightR_64_instruction_mov87:
 
 CryptonightR_64_instruction_mov88:
@@ -1221,9 +1285,9 @@ CryptonightR_64_instruction_mov91:
 CryptonightR_64_instruction_mov92:
 
 CryptonightR_64_instruction_mov93:
-	mov	ecx, edi
+	mov	rcx, rdi
 CryptonightR_64_instruction_mov94:
-	mov	ecx, edi
+	mov	rcx, rdi
 CryptonightR_64_instruction_mov95:
 
 CryptonightR_64_instruction_mov96:
@@ -1237,9 +1301,9 @@ CryptonightR_64_instruction_mov99:
 CryptonightR_64_instruction_mov100:
 
 CryptonightR_64_instruction_mov101:
-	mov	ecx, ebp
+	mov	rcx, rbp
 CryptonightR_64_instruction_mov102:
-	mov	ecx, ebp
+	mov	rcx, rbp
 CryptonightR_64_instruction_mov103:
 
 CryptonightR_64_instruction_mov104:
@@ -1253,9 +1317,9 @@ CryptonightR_64_instruction_mov107:
 CryptonightR_64_instruction_mov108:
 
 CryptonightR_64_instruction_mov109:
-	mov	ecx, ebp
+	mov	rcx, rbp
 CryptonightR_64_instruction_mov110:
-	mov	ecx, ebp
+	mov	rcx, rbp
 CryptonightR_64_instruction_mov111:
 
 CryptonightR_64_instruction_mov112:
@@ -1269,9 +1333,9 @@ CryptonightR_64_instruction_mov115:
 CryptonightR_64_instruction_mov116:
 
 CryptonightR_64_instruction_mov117:
-	mov	ecx, ebp
+	mov	rcx, rbp
 CryptonightR_64_instruction_mov118:
-	mov	ecx, ebp
+	mov	rcx, rbp
 CryptonightR_64_instruction_mov119:
 
 CryptonightR_64_instruction_mov120:
@@ -1285,9 +1349,9 @@ CryptonightR_64_instruction_mov123:
 CryptonightR_64_instruction_mov124:
 
 CryptonightR_64_instruction_mov125:
-	mov	ecx, ebp
+	mov	rcx, rbp
 CryptonightR_64_instruction_mov126:
-	mov	ecx, ebp
+	mov	rcx, rbp
 CryptonightR_64_instruction_mov127:
 
 CryptonightR_64_instruction_mov128:
@@ -1301,9 +1365,9 @@ CryptonightR_64_instruction_mov131:
 CryptonightR_64_instruction_mov132:
 
 CryptonightR_64_instruction_mov133:
-	mov	ecx, esp
+	mov	rcx, rsp
 CryptonightR_64_instruction_mov134:
-	mov	ecx, esp
+	mov	rcx, rsp
 CryptonightR_64_instruction_mov135:
 
 CryptonightR_64_instruction_mov136:
@@ -1317,9 +1381,9 @@ CryptonightR_64_instruction_mov139:
 CryptonightR_64_instruction_mov140:
 
 CryptonightR_64_instruction_mov141:
-	mov	ecx, esp
+	mov	rcx, rsp
 CryptonightR_64_instruction_mov142:
-	mov	ecx, esp
+	mov	rcx, rsp
 CryptonightR_64_instruction_mov143:
 
 CryptonightR_64_instruction_mov144:
@@ -1333,9 +1397,9 @@ CryptonightR_64_instruction_mov147:
 CryptonightR_64_instruction_mov148:
 
 CryptonightR_64_instruction_mov149:
-	mov	ecx, esp
+	mov	rcx, rsp
 CryptonightR_64_instruction_mov150:
-	mov	ecx, esp
+	mov	rcx, rsp
 CryptonightR_64_instruction_mov151:
 
 CryptonightR_64_instruction_mov152:
@@ -1349,9 +1413,9 @@ CryptonightR_64_instruction_mov155:
 CryptonightR_64_instruction_mov156:
 
 CryptonightR_64_instruction_mov157:
-	mov	ecx, esp
+	mov	rcx, rsp
 CryptonightR_64_instruction_mov158:
-	mov	ecx, esp
+	mov	rcx, rsp
 CryptonightR_64_instruction_mov159:
 
 CryptonightR_64_instruction_mov160:
@@ -1365,9 +1429,9 @@ CryptonightR_64_instruction_mov163:
 CryptonightR_64_instruction_mov164:
 
 CryptonightR_64_instruction_mov165:
-	mov	ecx, r15d
+	mov	rcx, r15
 CryptonightR_64_instruction_mov166:
-	mov	ecx, r15d
+	mov	rcx, r15
 CryptonightR_64_instruction_mov167:
 
 CryptonightR_64_instruction_mov168:
@@ -1381,9 +1445,9 @@ CryptonightR_64_instruction_mov171:
 CryptonightR_64_instruction_mov172:
 
 CryptonightR_64_instruction_mov173:
-	mov	ecx, r15d
+	mov	rcx, r15
 CryptonightR_64_instruction_mov174:
-	mov	ecx, r15d
+	mov	rcx, r15
 CryptonightR_64_instruction_mov175:
 
 CryptonightR_64_instruction_mov176:
@@ -1397,9 +1461,9 @@ CryptonightR_64_instruction_mov179:
 CryptonightR_64_instruction_mov180:
 
 CryptonightR_64_instruction_mov181:
-	mov	ecx, r15d
+	mov	rcx, r15
 CryptonightR_64_instruction_mov182:
-	mov	ecx, r15d
+	mov	rcx, r15
 CryptonightR_64_instruction_mov183:
 
 CryptonightR_64_instruction_mov184:
@@ -1413,9 +1477,9 @@ CryptonightR_64_instruction_mov187:
 CryptonightR_64_instruction_mov188:
 
 CryptonightR_64_instruction_mov189:
-	mov	ecx, r15d
+	mov	rcx, r15
 CryptonightR_64_instruction_mov190:
-	mov	ecx, r15d
+	mov	rcx, r15
 CryptonightR_64_instruction_mov191:
 
 CryptonightR_64_instruction_mov192:
@@ -1429,9 +1493,9 @@ CryptonightR_64_instruction_mov195:
 CryptonightR_64_instruction_mov196:
 
 CryptonightR_64_instruction_mov197:
-	mov	ecx, eax
+	mov	rcx, rax
 CryptonightR_64_instruction_mov198:
-	mov	ecx, eax
+	mov	rcx, rax
 CryptonightR_64_instruction_mov199:
 
 CryptonightR_64_instruction_mov200:
@@ -1445,9 +1509,9 @@ CryptonightR_64_instruction_mov203:
 CryptonightR_64_instruction_mov204:
 
 CryptonightR_64_instruction_mov205:
-	mov	ecx, eax
+	mov	rcx, rax
 CryptonightR_64_instruction_mov206:
-	mov	ecx, eax
+	mov	rcx, rax
 CryptonightR_64_instruction_mov207:
 
 CryptonightR_64_instruction_mov208:
@@ -1461,9 +1525,9 @@ CryptonightR_64_instruction_mov211:
 CryptonightR_64_instruction_mov212:
 
 CryptonightR_64_instruction_mov213:
-	mov	ecx, eax
+	mov	rcx, rax
 CryptonightR_64_instruction_mov214:
-	mov	ecx, eax
+	mov	rcx, rax
 CryptonightR_64_instruction_mov215:
 
 CryptonightR_64_instruction_mov216:
@@ -1477,9 +1541,9 @@ CryptonightR_64_instruction_mov219:
 CryptonightR_64_instruction_mov220:
 
 CryptonightR_64_instruction_mov221:
-	mov	ecx, eax
+	mov	rcx, rax
 CryptonightR_64_instruction_mov222:
-	mov	ecx, eax
+	mov	rcx, rax
 CryptonightR_64_instruction_mov223:
 
 CryptonightR_64_instruction_mov224:
@@ -1493,9 +1557,9 @@ CryptonightR_64_instruction_mov227:
 CryptonightR_64_instruction_mov228:
 
 CryptonightR_64_instruction_mov229:
-	mov	ecx, edx
+	mov	rcx, rdx
 CryptonightR_64_instruction_mov230:
-	mov	ecx, edx
+	mov	rcx, rdx
 CryptonightR_64_instruction_mov231:
 
 CryptonightR_64_instruction_mov232:
@@ -1509,9 +1573,9 @@ CryptonightR_64_instruction_mov235:
 CryptonightR_64_instruction_mov236:
 
 CryptonightR_64_instruction_mov237:
-	mov	ecx, edx
+	mov	rcx, rdx
 CryptonightR_64_instruction_mov238:
-	mov	ecx, edx
+	mov	rcx, rdx
 CryptonightR_64_instruction_mov239:
 
 CryptonightR_64_instruction_mov240:
@@ -1525,9 +1589,9 @@ CryptonightR_64_instruction_mov243:
 CryptonightR_64_instruction_mov244:
 
 CryptonightR_64_instruction_mov245:
-	mov	ecx, edx
+	mov	rcx, rdx
 CryptonightR_64_instruction_mov246:
-	mov	ecx, edx
+	mov	rcx, rdx
 CryptonightR_64_instruction_mov247:
 
 CryptonightR_64_instruction_mov248:
@@ -1541,9 +1605,9 @@ CryptonightR_64_instruction_mov251:
 CryptonightR_64_instruction_mov252:
 
 CryptonightR_64_instruction_mov253:
-	mov	ecx, edx
+	mov	rcx, rdx
 CryptonightR_64_instruction_mov254:
-	mov	ecx, edx
+	mov	rcx, rdx
 CryptonightR_64_instruction_mov255:
 
 CryptonightR_64_instruction_mov256:
