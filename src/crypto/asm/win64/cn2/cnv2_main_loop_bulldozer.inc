@@ -21,34 +21,34 @@
 	mov	r11, QWORD PTR [rcx+40]
 	mov	r10, r8
 	mov	rdx, QWORD PTR [rcx+56]
-	movq	xmm3, rax
+	movd	xmm3, rax
 	xor	rdx, QWORD PTR [rcx+24]
 	xor	r11, QWORD PTR [rcx+8]
 	mov	rbx, QWORD PTR [rcx+224]
 	mov	rax, QWORD PTR [r9+80]
 	xor	rax, QWORD PTR [r9+64]
-	movq	xmm0, rdx
+	movd	xmm0, rdx
 	mov	rcx, QWORD PTR [rcx+88]
 	xor	rcx, QWORD PTR [r9+72]
 	mov	rdi, QWORD PTR [r9+104]
 	and	r10d, 2097136
 	movaps	XMMWORD PTR [rsp+48], xmm6
-	movq	xmm4, rax
+	movd	xmm4, rax
 	movaps	XMMWORD PTR [rsp+32], xmm7
 	movaps	XMMWORD PTR [rsp+16], xmm8
 	xorps	xmm8, xmm8
 	mov ax, 1023
 	shl rax, 52
-	movq xmm7, rax
+	movd xmm7, rax
 	mov	r15, QWORD PTR [r9+96]
 	punpcklqdq xmm3, xmm0
-	movq	xmm0, rcx
+	movd	xmm0, rcx
 	punpcklqdq xmm4, xmm0
 
-	ALIGN 16
+	ALIGN(64)
 cnv2_main_loop_bulldozer:
 	movdqa	xmm5, XMMWORD PTR [r10+rbx]
-	movq xmm6, r8
+	movd xmm6, r8
 	pinsrq xmm6, r11, 1
 	lea	rdx, QWORD PTR [r10+rbx]
 	lea	r9, QWORD PTR [rdi+rdi]
@@ -77,7 +77,7 @@ cnv2_main_loop_bulldozer:
 	mov edi, 1023
 	shl rdi, 52
 
-	movq	r14, xmm5
+	movd	r14, xmm5
 	pextrq rax, xmm5, 1
 
 	movdqa	xmm0, xmm5
@@ -99,9 +99,9 @@ cnv2_main_loop_bulldozer:
 	lea	rax, [r14+r15]
 	shr	rax, 12
 	add	rax, rdi
-	movq	xmm0, rax
+	movd	xmm0, rax
 	sqrtsd	xmm1, xmm0
-	movq	rdi, xmm1
+	movd	rdi, xmm1
 	test	rdi, 524287
 	je	sqrt_fixup_bulldozer
 	shr	rdi, 19
@@ -109,8 +109,8 @@ cnv2_main_loop_bulldozer:
 sqrt_fixup_bulldozer_ret:
 	mov	rax, rsi
 	mul	r14
-	movq xmm1, rax
-	movq xmm0, rdx
+	movd xmm1, rax
+	movd xmm0, rdx
 	punpcklqdq xmm0, xmm1
 
 	mov	r9d, r10d
@@ -160,7 +160,7 @@ sqrt_fixup_bulldozer_ret:
 	jmp cnv2_main_loop_bulldozer_endp
 
 sqrt_fixup_bulldozer:
-	movq r9, xmm5
+	movd r9, xmm5
 	add r9, r15
 	dec	rdi
 	mov edx, -1022

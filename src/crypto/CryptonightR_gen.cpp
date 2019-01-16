@@ -18,7 +18,7 @@ static inline void add_code(uint8_t* &p, void (*p1)(), void (*p2)())
     }
 }
 
-static inline void add_random_math(uint8_t* &p, const V4_Instruction* code, int code_size, const void_func* instructions, const void_func* instructions_mov, bool is_64_bit)
+static inline void add_random_math(uint8_t* &p, const V4_Instruction* code, int code_size, const void_func* instructions, const void_func* instructions_mov, bool is_64_bit, xmrig::Assembly ASM)
 {
     uint32_t prev_rot_src = (uint32_t)(-1);
 
@@ -51,7 +51,21 @@ static inline void add_random_math(uint8_t* &p, const V4_Instruction* code, int 
             prev_rot_src = (uint32_t)(-1);
         }
 
-        add_code(p, instructions[c], instructions[c + 1]);
+        void_func begin = instructions[c];
+
+        if ((ASM = xmrig::ASM_BULLDOZER) && (inst.opcode == MUL) && !is_64_bit) {
+            // AMD Bulldozer has latency 4 for 32-bit IMUL and 6 for 64-bit IMUL
+            // Always use 32-bit IMUL for AMD Bulldozer in 32-bit mode - skip prefix 0x48 and change 0x49 to 0x41
+            uint8_t* prefix = reinterpret_cast<uint8_t*>(begin);
+
+            if (*prefix == 0x49) {
+                *(p++) = 0x41;
+            }
+
+            begin = reinterpret_cast<void_func>(prefix + 1);
+        }
+
+        add_code(p, begin, instructions[c + 1]);
 
         if (inst.opcode == ADD) {
             *(uint32_t*)(p - sizeof(uint32_t) - (is_64_bit ? 3 : 0)) = inst.C;
@@ -59,64 +73,64 @@ static inline void add_random_math(uint8_t* &p, const V4_Instruction* code, int 
     }
 }
 
-void v4_compile_code(const V4_Instruction* code, int code_size, void* machine_code)
+void v4_compile_code(const V4_Instruction* code, int code_size, void* machine_code, xmrig::Assembly ASM)
 {
     uint8_t* p0 = reinterpret_cast<uint8_t*>(machine_code);
     uint8_t* p = p0;
 
     add_code(p, CryptonightR_template_part1, CryptonightR_template_part2);
-    add_random_math(p, code, code_size, instructions, instructions_mov, false);
+    add_random_math(p, code, code_size, instructions, instructions_mov, false, ASM);
     add_code(p, CryptonightR_template_part2, CryptonightR_template_part3);
     *(int*)(p - 4) = static_cast<int>((((const uint8_t*)CryptonightR_template_mainloop) - ((const uint8_t*)CryptonightR_template_part1)) - (p - p0));
     add_code(p, CryptonightR_template_part3, CryptonightR_template_end);
 
-    Mem::FlushInstructionCache(machine_code, p - p0);
+    Mem::flushInstructionCache(machine_code, p - p0);
 }
 
-void v4_64_compile_code(const V4_Instruction* code, int code_size, void* machine_code)
+void v4_64_compile_code(const V4_Instruction* code, int code_size, void* machine_code, xmrig::Assembly ASM)
 {
     uint8_t* p0 = reinterpret_cast<uint8_t*>(machine_code);
     uint8_t* p = p0;
 
     add_code(p, CryptonightR_64_template_part1, CryptonightR_64_template_part2);
-    add_random_math(p, code, code_size, instructions_64, instructions_64_mov, true);
+    add_random_math(p, code, code_size, instructions_64, instructions_64_mov, true, ASM);
     add_code(p, CryptonightR_64_template_part2, CryptonightR_64_template_part3);
     *(int*)(p - 4) = static_cast<int>((((const uint8_t*)CryptonightR_64_template_mainloop) - ((const uint8_t*)CryptonightR_64_template_part1)) - (p - p0));
     add_code(p, CryptonightR_64_template_part3, CryptonightR_64_template_end);
 
-    Mem::FlushInstructionCache(machine_code, p - p0);
+    Mem::flushInstructionCache(machine_code, p - p0);
 }
 
-void v4_compile_code_double(const V4_Instruction* code, int code_size, void* machine_code)
+void v4_compile_code_double(const V4_Instruction* code, int code_size, void* machine_code, xmrig::Assembly ASM)
 {
     uint8_t* p0 = reinterpret_cast<uint8_t*>(machine_code);
     uint8_t* p = p0;
 
     add_code(p, CryptonightR_template_double_part1, CryptonightR_template_double_part2);
-    add_random_math(p, code, code_size, instructions, instructions_mov, false);
+    add_random_math(p, code, code_size, instructions, instructions_mov, false, ASM);
     add_code(p, CryptonightR_template_double_part2, CryptonightR_template_double_part3);
-    add_random_math(p, code, code_size, instructions, instructions_mov, false);
+    add_random_math(p, code, code_size, instructions, instructions_mov, false, ASM);
     add_code(p, CryptonightR_template_double_part3, CryptonightR_template_double_part4);
     *(int*)(p - 4) = static_cast<int>((((const uint8_t*)CryptonightR_template_double_mainloop) - ((const uint8_t*)CryptonightR_template_double_part1)) - (p - p0));
     add_code(p, CryptonightR_template_double_part4, CryptonightR_template_double_end);
 
-    Mem::FlushInstructionCache(machine_code, p - p0);
+    Mem::flushInstructionCache(machine_code, p - p0);
 }
 
-void v4_64_compile_code_double(const V4_Instruction* code, int code_size, void* machine_code)
+void v4_64_compile_code_double(const V4_Instruction* code, int code_size, void* machine_code, xmrig::Assembly ASM)
 {
     uint8_t* p0 = reinterpret_cast<uint8_t*>(machine_code);
     uint8_t* p = p0;
 
     add_code(p, CryptonightR_64_template_double_part1, CryptonightR_64_template_double_part2);
-    add_random_math(p, code, code_size, instructions_64, instructions_64_mov, true);
+    add_random_math(p, code, code_size, instructions_64, instructions_64_mov, true, ASM);
     add_code(p, CryptonightR_64_template_double_part2, CryptonightR_64_template_double_part3);
-    add_random_math(p, code, code_size, instructions_64, instructions_64_mov, true);
+    add_random_math(p, code, code_size, instructions_64, instructions_64_mov, true, ASM);
     add_code(p, CryptonightR_64_template_double_part3, CryptonightR_64_template_double_part4);
     *(int*)(p - 4) = static_cast<int>((((const uint8_t*)CryptonightR_64_template_double_mainloop) - ((const uint8_t*)CryptonightR_64_template_double_part1)) - (p - p0));
     add_code(p, CryptonightR_64_template_double_part4, CryptonightR_64_template_double_end);
 
-    Mem::FlushInstructionCache(machine_code, p - p0);
+    Mem::flushInstructionCache(machine_code, p - p0);
 }
 
 #endif
