@@ -90,9 +90,12 @@ inline static int cnKernelOffset(xmrig::Variant variant)
     case xmrig::VARIANT_2:
         return 11;
 
+    case xmrig::VARIANT_HALF:
+        return 12;
+
     case xmrig::VARIANT_4:
     case xmrig::VARIANT_4_64:
-        return 12;
+        return 13;
 
     default:
         break;
@@ -211,8 +214,8 @@ size_t InitOpenCLGpu(int index, cl_context opencl_ctx, GpuContext* ctx, const ch
         return OCL_ERR_API;
     }
 
-    const char *KernelNames[] = { "cn0", "cn1", "cn2", "Blake", "Groestl", "JH", "Skein", "cn1_monero", "cn1_msr", "cn1_xao", "cn1_tube", "cn1_v2_monero"};
-    for (int i = 0; i < 12; ++i) {
+    const char *KernelNames[] = { "cn0", "cn1", "cn2", "Blake", "Groestl", "JH", "Skein", "cn1_monero", "cn1_msr", "cn1_xao", "cn1_tube", "cn1_v2_monero", "cn1_v2_half"};
+    for (int i = 0; i < 13; ++i) {
         ctx->Kernels[i] = OclLib::createKernel(ctx->Program, KernelNames[i], &ret);
         if (ret != CL_SUCCESS) {
             return OCL_ERR_API;
@@ -491,7 +494,7 @@ size_t XMRSetJob(GpuContext *ctx, uint8_t *input, size_t input_len, uint64_t tar
 
     input[input_len] = 0x01;
     memset(input + input_len + 1, 0, 88 - input_len - 1);
-    
+
 	cl_uint numThreads = ctx->rawIntensity;
 
     if ((ret = OclLib::enqueueWriteBuffer(ctx->CommandQueues, ctx->InputBuffer, CL_TRUE, 0, 88, input, 0, nullptr, nullptr)) != CL_SUCCESS) {
@@ -541,7 +544,7 @@ size_t XMRSetJob(GpuContext *ctx, uint8_t *input, size_t input_len, uint64_t tar
             // Precompile next program in background
             CryptonightR_get_program(ctx, variant, height + 1, true, old_kernel);
         }
-        
+
         const int64_t timeFinish = xmrig::steadyTimestamp();
         LOG_INFO("Thread #%zu updated CryptonightR in %.3fs", ctx->threadIdx, (timeFinish - timeStart) / 1000.0);
     }

@@ -175,6 +175,9 @@ CryptoNight::cn_hash_fun CryptoNight::fn(xmrig::Algo algorithm, xmrig::AlgoVerif
 #       endif
         cryptonight_single_hash<CRYPTONIGHT, true, VARIANT_4_64>,
 
+        cryptonight_single_hash<CRYPTONIGHT, false, VARIANT_HALF>,
+        cryptonight_single_hash<CRYPTONIGHT, true,  VARIANT_HALF>,
+
 #       ifndef XMRIG_NO_AEON
         cryptonight_single_hash<CRYPTONIGHT_LITE, false, VARIANT_0>,
         cryptonight_single_hash<CRYPTONIGHT_LITE, true,  VARIANT_0>,
@@ -260,7 +263,7 @@ bool CryptoNight::selfTest() {
             LOG_WARN("CryptonightR self-test failed");
 #endif
         }
-        return verify(VARIANT_0, test_output_v0) &&
+        return verify(VARIANT_0, test_output_v0)    &&
                verify(VARIANT_1,   test_output_v1)  &&
                verify(VARIANT_2,   test_output_v2)  &&
                verify(VARIANT_XTL, test_output_xtl) &&
