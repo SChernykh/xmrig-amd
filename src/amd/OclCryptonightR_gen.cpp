@@ -250,7 +250,7 @@ cl_program CryptonightR_get_program(GpuContext* ctx, xmrig::Variant variant, uin
     source_code.append(offset + sizeof(include_name) - 1);
 
     char options[512] = {};
-    OclCache::get_options(xmrig::CRYPTONIGHT, ctx, options, sizeof(options));
+    OclCache::get_options(xmrig::CRYPTONIGHT, variant, ctx, options, sizeof(options));
 
     if (variant == xmrig::VARIANT_4_64)
     {

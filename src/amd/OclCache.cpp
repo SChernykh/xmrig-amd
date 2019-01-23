@@ -64,11 +64,11 @@ cl_int OclCache::wait_build(cl_program program, cl_device_id device)
     return CL_SUCCESS;
 }
 
-void OclCache::get_options(xmrig::Algo algo, const GpuContext* ctx, char* options, size_t options_size)
+void OclCache::get_options(xmrig::Algo algo, xmrig::Variant variant, const GpuContext* ctx, char* options, size_t options_size)
 {
     snprintf(options, options_size, "-DITERATIONS=%u -DMASK=%u -DWORKSIZE=%zu -DSTRIDED_INDEX=%d -DMEM_CHUNK_EXPONENT=%d -DCOMP_MODE=%d -DMEMORY=%zu "
         "-DALGO=%d -DUNROLL_FACTOR=%d -DOPENCL_DRIVER_MAJOR=%d",
-        xmrig::cn_select_iter(algo, xmrig::VARIANT_0),
+        xmrig::cn_select_iter(algo, variant),
         xmrig::cn_select_mask(algo),
         ctx->workSize,
         ctx->stridedIndex,
@@ -84,9 +84,10 @@ void OclCache::get_options(xmrig::Algo algo, const GpuContext* ctx, char* option
 bool OclCache::load()
 {
     const xmrig::Algo algo  = m_config->algorithm().algo();
+    const xmrig::Variant variant = m_config->algorithm().variant();
 
     char options[512] = { 0 };
-    get_options(algo, m_ctx, options, sizeof(options));
+    get_options(algo, variant, m_ctx, options, sizeof(options));
 
     if (!prepare(options)) {
         return false;
