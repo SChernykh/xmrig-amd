@@ -173,7 +173,7 @@ static FORCEINLINE void check_data(size_t* data_index, const size_t bytes_needed
 {
 	if (*data_index + bytes_needed > data_size)
 	{
-        blake256_hash((uint8_t*)data, (uint8_t*)data, sizeof(data));
+		blake256_hash((uint8_t*)data, (uint8_t*)data, data_size);
 		*data_index = 0;
 	}
 }

@@ -69,6 +69,9 @@ static inline void add_random_math(uint8_t* &p, const V4_Instruction* code, int 
 
         if (inst.opcode == ADD) {
             *(uint32_t*)(p - sizeof(uint32_t) - (is_64_bit ? 3 : 0)) = inst.C;
+            if (is_64_bit) {
+                prev_rot_src = (uint32_t)(-1);
+            }
         }
     }
 }
