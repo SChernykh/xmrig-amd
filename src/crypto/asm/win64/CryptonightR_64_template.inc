@@ -1,16 +1,16 @@
-PUBLIC CryptonightR_64_template_part1
-PUBLIC CryptonightR_64_template_mainloop
-PUBLIC CryptonightR_64_template_part2
-PUBLIC CryptonightR_64_template_part3
-PUBLIC CryptonightR_64_template_end
-PUBLIC CryptonightR_64_template_double_part1
-PUBLIC CryptonightR_64_template_double_mainloop
-PUBLIC CryptonightR_64_template_double_part2
-PUBLIC CryptonightR_64_template_double_part3
-PUBLIC CryptonightR_64_template_double_part4
-PUBLIC CryptonightR_64_template_double_end
+PUBLIC FN_PREFIX(CryptonightR_64_template_part1)
+PUBLIC FN_PREFIX(CryptonightR_64_template_mainloop)
+PUBLIC FN_PREFIX(CryptonightR_64_template_part2)
+PUBLIC FN_PREFIX(CryptonightR_64_template_part3)
+PUBLIC FN_PREFIX(CryptonightR_64_template_end)
+PUBLIC FN_PREFIX(CryptonightR_64_template_double_part1)
+PUBLIC FN_PREFIX(CryptonightR_64_template_double_mainloop)
+PUBLIC FN_PREFIX(CryptonightR_64_template_double_part2)
+PUBLIC FN_PREFIX(CryptonightR_64_template_double_part3)
+PUBLIC FN_PREFIX(CryptonightR_64_template_double_part4)
+PUBLIC FN_PREFIX(CryptonightR_64_template_double_end)
 
-CryptonightR_64_template_part1:
+FN_PREFIX(CryptonightR_64_template_part1):
 	mov	QWORD PTR [rsp+16], rbx
 	mov	QWORD PTR [rsp+24], rbp
 	mov	QWORD PTR [rsp+32], rsi
@@ -59,8 +59,8 @@ CryptonightR_64_template_part1:
 	mov	rdi, [rdx+112]
 	mov	rbp, [rdx+120]
 
-	ALIGN 64
-CryptonightR_64_template_mainloop:
+	ALIGN(64)
+FN_PREFIX(CryptonightR_64_template_mainloop):
 	movdqa	xmm5, XMMWORD PTR [r9+r11]
 	movd	xmm0, r15
 	movd	xmm4, rsp
@@ -101,7 +101,7 @@ CryptonightR_64_template_mainloop:
 	movd rax, xmm6
 	movd rdx, xmm7
 
-CryptonightR_64_template_part2:
+FN_PREFIX(CryptonightR_64_template_part2):
 	mov	rax, r13
 	mul	r12
 	movd	xmm0, rax
@@ -137,9 +137,9 @@ CryptonightR_64_template_part2:
 	xor	r15, r14
 	movdqa	xmm6, xmm5
 	dec	r8d
-	jnz	CryptonightR_64_template_mainloop
+	jnz	FN_PREFIX(CryptonightR_64_template_mainloop)
 
-CryptonightR_64_template_part3:
+FN_PREFIX(CryptonightR_64_template_part3):
 	movd	rsp, xmm9
 
 	mov	rbx, QWORD PTR [rsp+136]
@@ -158,10 +158,10 @@ CryptonightR_64_template_part3:
 	pop	r11
 	pop	r10
 	ret	0
-CryptonightR_64_template_end:
+FN_PREFIX(CryptonightR_64_template_end):
 
-ALIGN 64
-CryptonightR_64_template_double_part1:
+ALIGN(64)
+FN_PREFIX(CryptonightR_64_template_double_part1):
 	mov	QWORD PTR [rsp+24], rbx
 	push	rbp
 	push	rsi
@@ -241,8 +241,8 @@ CryptonightR_64_template_double_part1:
 	movd xmm14, QWORD PTR [rsp+128]
 	movd xmm15, QWORD PTR [rsp+136]
 
-	ALIGN 64
-CryptonightR_64_template_double_mainloop:
+	ALIGN(64)
+FN_PREFIX(CryptonightR_64_template_double_mainloop):
 	movdqu	xmm6, XMMWORD PTR [rbx+rsi]
 	movd	xmm0, r12
 	mov	ecx, ebx
@@ -323,7 +323,7 @@ CryptonightR_64_template_double_mainloop:
 	movd rax, xmm7
 	movd rdx, xmm9
 
-CryptonightR_64_template_double_part2:
+FN_PREFIX(CryptonightR_64_template_double_part2):
 
 	movd rsp, xmm0
 	mov QWORD PTR [rsp+32], rbx
@@ -403,7 +403,7 @@ CryptonightR_64_template_double_part2:
 	movd rax, xmm8
 	movd rdx, xmm10
 
-CryptonightR_64_template_double_part3:
+FN_PREFIX(CryptonightR_64_template_double_part3):
 
 	movd rsp, xmm0
 	mov QWORD PTR [rsp], rbx
@@ -452,9 +452,9 @@ CryptonightR_64_template_double_part3:
 	xor	r13, r9
 	and	r8d, 2097136
 	dec r11d
-	jnz	CryptonightR_64_template_double_mainloop
+	jnz	FN_PREFIX(CryptonightR_64_template_double_mainloop)
 
-CryptonightR_64_template_double_part4:
+FN_PREFIX(CryptonightR_64_template_double_part4):
 
 	mov	rbx, QWORD PTR [rsp+400]
 	movaps	xmm6, XMMWORD PTR [rsp+160]
@@ -476,4 +476,4 @@ CryptonightR_64_template_double_part4:
 	pop	rsi
 	pop	rbp
 	ret	0
-CryptonightR_64_template_double_end:
+FN_PREFIX(CryptonightR_64_template_double_end):

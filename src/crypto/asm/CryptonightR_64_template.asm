@@ -516,7 +516,7 @@ PUBLIC CryptonightR_64_instruction_mov254
 PUBLIC CryptonightR_64_instruction_mov255
 PUBLIC CryptonightR_64_instruction_mov256
 
-INCLUDE CryptonightR_64_template.inc
+INCLUDE CryptonightR_64_template_win.inc
 
 CryptonightR_64_instruction0:
 	imul	rbx, rbx
