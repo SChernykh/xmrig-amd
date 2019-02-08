@@ -4,11 +4,13 @@ project(xmrig-amd)
 option(WITH_AEON      "CryptoNight-Lite support" ON)
 option(WITH_SUMO      "CryptoNight-Heavy support" ON)
 option(WITH_CN_PICO   "CryptoNight-Pico support" ON)
+option(WITH_CN_GPU    "CryptoNight-GPU support" ON)
 option(WITH_HTTPD     "HTTP REST API" ON)
 option(WITH_TLS       "Enable OpenSSL support" ON)
 option(WITH_ASM       "Enable ASM PoW implementations" ON)
 option(STRICT_CACHE   "Enable strict checks for OpenCL cache" ON)
 option(BUILD_STATIC   "Build static binary" OFF)
+option(ARM_TARGET     "Force use specific ARM target 8 or 7" 0)
 option(TEST_CN_R      "Test mode for Cryptonight R" OFF)
 
 option(WITH_DEBUG_LOG            "Enable debug log output, network, etc" OFF)
@@ -219,6 +221,7 @@ add_definitions(/DCL_USE_DEPRECATED_OPENCL_1_2_APIS)
 
 
 include(cmake/OpenSSL.cmake)
+include(cmake/cn-gpu.cmake)
 include(cmake/asm.cmake)
 
 CHECK_INCLUDE_FILE (syslog.h HAVE_SYSLOG_H)
@@ -288,5 +291,5 @@ if (WITH_INTERLEAVE_DEBUG_LOG)
     add_definitions(/DAPP_INTERLEAVE_DEBUG)
 endif()
 
-add_executable(${CMAKE_PROJECT_NAME} ${HEADERS} ${SOURCES} ${SOURCES_OS} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${HTTPD_SOURCES} ${TLS_SOURCES} ${XMRIG_ASM_SOURCES})
+add_executable(${CMAKE_PROJECT_NAME} ${HEADERS} ${SOURCES} ${SOURCES_OS} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${HTTPD_SOURCES} ${TLS_SOURCES} ${CN_GPU_SOURCES} ${XMRIG_ASM_SOURCES})
 target_link_libraries(${CMAKE_PROJECT_NAME} ${XMRIG_ASM_LIBRARY} ${OPENSSL_LIBRARIES} ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${LIBS})

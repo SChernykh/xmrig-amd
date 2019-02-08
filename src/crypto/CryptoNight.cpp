@@ -4,9 +4,10 @@
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -180,6 +181,13 @@ CryptoNight::cn_hash_fun CryptoNight::fn(xmrig::Algo algorithm, xmrig::AlgoVerif
 
         nullptr, nullptr, // VARIANT_TRTL
 
+#       ifndef XMRIG_NO_CN_GPU
+        cryptonight_single_hash_gpu<CRYPTONIGHT, false, VARIANT_GPU>,
+        cryptonight_single_hash_gpu<CRYPTONIGHT, true,  VARIANT_GPU>,
+#       else
+        nullptr, nullptr, // VARIANT_GPU
+#       endif
+
 #       ifdef XMRIG_NO_ASM
         cryptonight_single_hash<CRYPTONIGHT, false, VARIANT_4>,
 #       else
@@ -210,6 +218,7 @@ CryptoNight::cn_hash_fun CryptoNight::fn(xmrig::Algo algorithm, xmrig::AlgoVerif
         nullptr, nullptr, // VARIANT_2
         nullptr, nullptr, // VARIANT_HALF
         nullptr, nullptr, // VARIANT_TRTL
+        nullptr, nullptr, // VARIANT_GPU
         nullptr, nullptr, // VARIANT_4
         nullptr, nullptr, // VARIANT_4_64
 #       else
@@ -219,7 +228,7 @@ CryptoNight::cn_hash_fun CryptoNight::fn(xmrig::Algo algorithm, xmrig::AlgoVerif
         nullptr, nullptr, nullptr, nullptr,
         nullptr, nullptr, nullptr, nullptr,
         nullptr, nullptr, nullptr, nullptr,
-        nullptr, nullptr,
+        nullptr, nullptr, nullptr, nullptr,
 #       endif
 
 #       ifndef XMRIG_NO_SUMO
@@ -242,6 +251,7 @@ CryptoNight::cn_hash_fun CryptoNight::fn(xmrig::Algo algorithm, xmrig::AlgoVerif
         nullptr, nullptr, // VARIANT_2
         nullptr, nullptr, // VARIANT_HALF
         nullptr, nullptr, // VARIANT_TRTL
+        nullptr, nullptr, // VARIANT_GPU
         nullptr, nullptr, // VARIANT_4
         nullptr, nullptr, // VARIANT_4_64
 #       else
@@ -251,7 +261,7 @@ CryptoNight::cn_hash_fun CryptoNight::fn(xmrig::Algo algorithm, xmrig::AlgoVerif
         nullptr, nullptr, nullptr, nullptr,
         nullptr, nullptr, nullptr, nullptr,
         nullptr, nullptr, nullptr, nullptr,
-        nullptr, nullptr,
+        nullptr, nullptr, nullptr, nullptr,
 #       endif
 #       ifndef XMRIG_NO_CN_PICO
         nullptr, nullptr, // VARIANT_0
@@ -272,6 +282,7 @@ CryptoNight::cn_hash_fun CryptoNight::fn(xmrig::Algo algorithm, xmrig::AlgoVerif
 #       endif
         cryptonight_single_hash<CRYPTONIGHT_PICO, true, VARIANT_TRTL>,
 
+        nullptr, nullptr, // VARIANT_GPU
         nullptr, nullptr, // VARIANT_4
         nullptr, nullptr, // VARIANT_4_64
     #else
@@ -281,7 +292,7 @@ CryptoNight::cn_hash_fun CryptoNight::fn(xmrig::Algo algorithm, xmrig::AlgoVerif
         nullptr, nullptr, nullptr, nullptr,
         nullptr, nullptr, nullptr, nullptr,
         nullptr, nullptr, nullptr, nullptr,
-        nullptr, nullptr,
+        nullptr, nullptr, nullptr, nullptr,
 #       endif
     };
 
@@ -315,12 +326,15 @@ bool CryptoNight::selfTest() {
 #endif
         }
         return verify(VARIANT_0, test_output_v0)    &&
-               verify(VARIANT_1,   test_output_v1)  &&
-               verify(VARIANT_2,   test_output_v2)  &&
-               verify(VARIANT_XTL, test_output_xtl) &&
-               verify(VARIANT_MSR, test_output_msr) &&
-               verify(VARIANT_XAO, test_output_xao) &&
-               verify(VARIANT_RTO, test_output_rto) &&
+               verify(VARIANT_1,    test_output_v1)  &&
+               verify(VARIANT_2,    test_output_v2)  &&
+               verify(VARIANT_XTL,  test_output_xtl) &&
+               verify(VARIANT_MSR,  test_output_msr) &&
+               verify(VARIANT_XAO,  test_output_xao) &&
+               verify(VARIANT_RTO,  test_output_rto) &&
+#              ifndef XMRIG_NO_CN_GPU
+               verify(VARIANT_GPU,  test_output_gpu) &&
+#              endif
                verify(VARIANT_HALF, test_output_half);
     }
 
