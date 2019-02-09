@@ -51,6 +51,7 @@ bool CryptoNight::hash(const Job &job, JobResult &result, cryptonight_ctx *ctx)
 }
 
 
+#ifndef XMRIG_NO_ASM
 xmrig::CpuThread::cn_mainloop_fun cn_half_mainloop_ivybridge_asm = nullptr;
 xmrig::CpuThread::cn_mainloop_fun cn_half_mainloop_ryzen_asm = nullptr;
 xmrig::CpuThread::cn_mainloop_fun cn_half_mainloop_bulldozer_asm = nullptr;
@@ -123,11 +124,13 @@ static void patchAsmVariants()
     Mem::protectExecutableMemory(base, allocation_size);
     Mem::flushInstructionCache(base, allocation_size);
 }
-
+#endif
 
 bool CryptoNight::init(xmrig::Algo algorithm)
 {
+#ifndef XMRIG_NO_ASM
     patchAsmVariants();
+#endif
 
     m_algorithm = algorithm;
     m_av        = xmrig::Cpu::info()->hasAES() ? xmrig::VERIFY_HW_AES : xmrig::VERIFY_SOFT_AES;
