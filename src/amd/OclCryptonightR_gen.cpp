@@ -3,7 +3,7 @@
 #include <mutex>
 #include <cstring>
 #include <thread>
-#include "crypto/variant4_random_math.h"
+#include "crypto/CryptoNight_monero.h"
 #include "amd/OclCryptonightR_gen.h"
 #include "amd/OclLib.h"
 #include "amd/OclCache.h"

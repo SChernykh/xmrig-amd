@@ -588,10 +588,10 @@ size_t XMRSetJob(GpuContext *ctx, uint8_t *input, size_t input_len, uint64_t tar
 
             // Precompile next program in background
             CryptonightR_get_program(ctx, variant, height + 1, true, old_kernel);
-        }
 
-        const int64_t timeFinish = xmrig::steadyTimestamp();
-        LOG_INFO("Thread #%zu updated CryptonightR in %.3fs", ctx->threadIdx, (timeFinish - timeStart) / 1000.0);
+            const int64_t timeFinish = xmrig::steadyTimestamp();
+            LOG_INFO("Thread #%zu updated CryptonightR in %.3fs", ctx->threadIdx, (timeFinish - timeStart) / 1000.0);
+        }
     }
 
     // Scratchpads, States
@@ -819,7 +819,8 @@ void ReleaseOpenCl(GpuContext* ctx)
 
     int kernel_count = sizeof(ctx->Kernels) / sizeof(ctx->Kernels[0]);
     for (int k = 0; k < kernel_count; ++k) {
-        OclLib::releaseKernel(ctx->Kernels[k]);
+        if (ctx->Kernels[k])
+            OclLib::releaseKernel(ctx->Kernels[k]);
     }
 
     OclLib::releaseCommandQueue(ctx->CommandQueues);

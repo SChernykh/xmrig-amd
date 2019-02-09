@@ -1,5 +1,5 @@
 #include <cstring>
-#include "crypto/variant4_random_math.h"
+#include "crypto/CryptoNight_monero.h"
 
 typedef void(*void_func)();
 
@@ -28,14 +28,13 @@ static inline void add_random_math(uint8_t* &p, const V4_Instruction* code, int 
             break;
         }
 
-        V4_InstructionCompact op;
-        op.opcode = (inst.opcode == MUL) ? inst.opcode : (inst.opcode + 2);
-        op.dst_index = inst.dst_index;
-        op.src_index = inst.src_index;
+        uint8_t opcode = (inst.opcode == MUL) ? inst.opcode : (inst.opcode + 2);
+        uint8_t dst_index = inst.dst_index;
+        uint8_t src_index = inst.src_index;
 
         const uint32_t a = inst.dst_index;
         const uint32_t b = inst.src_index;
-        const uint8_t c = *reinterpret_cast<const uint8_t*>(&op);
+        const uint8_t c = opcode | (dst_index << V4_OPCODE_BITS) | (src_index << (V4_OPCODE_BITS + V4_DST_INDEX_BITS));
 
         switch (inst.opcode) {
         case ROR:

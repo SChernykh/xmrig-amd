@@ -69,7 +69,9 @@ struct GpuContext
         globalMem(0),
         computeUnits(0),
         Nonce(0)
-    {}
+    {
+        memset(Kernels, 0, sizeof(Kernels));
+    }
 
 
     inline GpuContext(size_t index, size_t intensity, size_t worksize, size_t threads, int stridedIndex, int memChunk, bool compMode, int unrollFactor) :
@@ -98,7 +100,9 @@ struct GpuContext
         globalMem(0),
         computeUnits(0),
         Nonce(0)
-    {}
+    {
+        memset(Kernels, 0, sizeof(Kernels));
+    }
 
     /*Input vars*/
     size_t deviceIdx;

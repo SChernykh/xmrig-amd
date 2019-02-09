@@ -148,6 +148,10 @@
     } while (0)
 #endif
 
+#define SWAP32LE(x) x
+#define SWAP64LE(x) x
+#define hash_extra_blake(data, length, hash) blake256_hash((uint8_t*)(hash), (uint8_t*)(data), (length))
+
 #include "variant4_random_math.h"
 
 #define VARIANT4_RANDOM_MATH_INIT(part) \
