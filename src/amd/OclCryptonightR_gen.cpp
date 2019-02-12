@@ -242,22 +242,22 @@ cl_program CryptonightR_get_program(GpuContext* ctx, xmrig::Variant variant, uin
     }
 
     V4_Instruction code[256];
-	int code_size;
-	switch (variant)
-	{
-	case xmrig::VARIANT_WOW:
-		code_size = v4_random_math_init<xmrig::VARIANT_WOW>(code, height);
-		break;
-	case xmrig::VARIANT_4:
-		code_size = v4_random_math_init<xmrig::VARIANT_4>(code, height);
-		break;
-	case xmrig::VARIANT_4_64:
-		code_size = v4_random_math_init<xmrig::VARIANT_4_64>(code, height);
-		break;
-	default:
-		LOG_ERR("CryptonightR_get_program: invalid variant %d", variant);
-		return nullptr;
-	}
+    int code_size;
+    switch (variant)
+    {
+    case xmrig::VARIANT_WOW:
+        code_size = v4_random_math_init<xmrig::VARIANT_WOW>(code, height);
+        break;
+    case xmrig::VARIANT_4:
+        code_size = v4_random_math_init<xmrig::VARIANT_4>(code, height);
+        break;
+    case xmrig::VARIANT_4_64:
+        code_size = v4_random_math_init<xmrig::VARIANT_4_64>(code, height);
+        break;
+    default:
+        LOG_ERR("CryptonightR_get_program: invalid variant %d", variant);
+        return nullptr;
+    }
 
     std::string source_code(source_code_template, offset);
     source_code.append(get_code(code, code_size));

@@ -1,4 +1,8 @@
 R"===(
+#define VARIANT_WOW  12 // CryptoNightR (Wownero)
+#define VARIANT_4    13 // CryptoNightR
+#define VARIANT_4_64 14 // CryptoNightR, 64 bit
+
 #define MEM_CHUNK (1 << MEM_CHUNK_EXPONENT)
 
 __attribute__((reqd_work_group_size(WORKSIZE, 1, 1)))
@@ -132,6 +136,9 @@ __kernel void cn1_cryptonight_r(__global uint4 *Scratchpad, __global ulong *stat
         const ulong r5 = a[1];
         const ulong r6 = as_ulong2(bx0).s0;
         const ulong r7 = as_ulong2(bx1).s0;
+#if ((VARIANT == VARIANT_4) || (VARIANT == VARIANT_4_64))
+        const ulong r8 = as_ulong2(bx1).s1;
+#endif
 #define ROT_BITS 64
 #else
         tmp.s0 ^= r0 + r1;
@@ -140,6 +147,9 @@ __kernel void cn1_cryptonight_r(__global uint4 *Scratchpad, __global ulong *stat
         const uint r5 = as_uint2(a[1]).s0;
         const uint r6 = as_uint4(bx0).s0;
         const uint r7 = as_uint4(bx1).s0;
+#if ((VARIANT == VARIANT_4) || (VARIANT == VARIANT_4_64))
+        const uint r8 = as_uint4(bx1).s2;
+#endif
 #define ROT_BITS 32
 #endif
 
