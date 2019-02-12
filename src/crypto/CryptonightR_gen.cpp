@@ -7,7 +7,7 @@ typedef void(*void_func)();
 #include "crypto/asm/CryptonightR_64_template.h"
 #include "Mem.h"
 
-#ifndef XMRIG_ARM
+#if !defined XMRIG_ARM && !defined XMRIG_NO_ASM
 
 static inline void add_code(uint8_t* &p, void (*p1)(), void (*p2)())
 {
