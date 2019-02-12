@@ -538,17 +538,17 @@ FN_PREFIX(CryptonightR_64_instruction1):
 FN_PREFIX(CryptonightR_64_instruction2):
 	imul	rbx, rbx
 FN_PREFIX(CryptonightR_64_instruction3):
-	add	rbx, rbx
+	add	rbx, r9
 	mov ecx, 2147483647
 	add	rbx, rcx
 FN_PREFIX(CryptonightR_64_instruction4):
-	sub	rbx, rbx
+	sub	rbx, r9
 FN_PREFIX(CryptonightR_64_instruction5):
 	ror	rbx, cl
 FN_PREFIX(CryptonightR_64_instruction6):
 	rol	rbx, cl
 FN_PREFIX(CryptonightR_64_instruction7):
-	xor	rbx, rbx
+	xor	rbx, r9
 FN_PREFIX(CryptonightR_64_instruction8):
 	imul	rsi, rbx
 FN_PREFIX(CryptonightR_64_instruction9):
@@ -628,17 +628,17 @@ FN_PREFIX(CryptonightR_64_instruction41):
 FN_PREFIX(CryptonightR_64_instruction42):
 	imul	rsi, rsi
 FN_PREFIX(CryptonightR_64_instruction43):
-	add	rsi, rsi
+	add	rsi, r9
 	mov ecx, 2147483647
 	add	rsi, rcx
 FN_PREFIX(CryptonightR_64_instruction44):
-	sub	rsi, rsi
+	sub	rsi, r9
 FN_PREFIX(CryptonightR_64_instruction45):
 	ror	rsi, cl
 FN_PREFIX(CryptonightR_64_instruction46):
 	rol	rsi, cl
 FN_PREFIX(CryptonightR_64_instruction47):
-	xor	rsi, rsi
+	xor	rsi, r9
 FN_PREFIX(CryptonightR_64_instruction48):
 	imul	rdi, rsi
 FN_PREFIX(CryptonightR_64_instruction49):
@@ -718,17 +718,17 @@ FN_PREFIX(CryptonightR_64_instruction81):
 FN_PREFIX(CryptonightR_64_instruction82):
 	imul	rdi, rdi
 FN_PREFIX(CryptonightR_64_instruction83):
-	add	rdi, rdi
+	add	rdi, r9
 	mov ecx, 2147483647
 	add	rdi, rcx
 FN_PREFIX(CryptonightR_64_instruction84):
-	sub	rdi, rdi
+	sub	rdi, r9
 FN_PREFIX(CryptonightR_64_instruction85):
 	ror	rdi, cl
 FN_PREFIX(CryptonightR_64_instruction86):
 	rol	rdi, cl
 FN_PREFIX(CryptonightR_64_instruction87):
-	xor	rdi, rdi
+	xor	rdi, r9
 FN_PREFIX(CryptonightR_64_instruction88):
 	imul	rbp, rdi
 FN_PREFIX(CryptonightR_64_instruction89):
@@ -808,17 +808,17 @@ FN_PREFIX(CryptonightR_64_instruction121):
 FN_PREFIX(CryptonightR_64_instruction122):
 	imul	rbp, rbp
 FN_PREFIX(CryptonightR_64_instruction123):
-	add	rbp, rbp
+	add	rbp, r9
 	mov ecx, 2147483647
 	add	rbp, rcx
 FN_PREFIX(CryptonightR_64_instruction124):
-	sub	rbp, rbp
+	sub	rbp, r9
 FN_PREFIX(CryptonightR_64_instruction125):
 	ror	rbp, cl
 FN_PREFIX(CryptonightR_64_instruction126):
 	rol	rbp, cl
 FN_PREFIX(CryptonightR_64_instruction127):
-	xor	rbp, rbp
+	xor	rbp, r9
 FN_PREFIX(CryptonightR_64_instruction128):
 	imul	rbx, rsp
 FN_PREFIX(CryptonightR_64_instruction129):

@@ -414,6 +414,7 @@ void Pool::rebuild()
 #   ifndef XMRIG_PROXY_PROJECT
     addVariant(xmrig::VARIANT_4_64);
     addVariant(xmrig::VARIANT_4);
+    addVariant(xmrig::VARIANT_WOW);
     addVariant(xmrig::VARIANT_2);
     addVariant(xmrig::VARIANT_1);
     addVariant(xmrig::VARIANT_0);

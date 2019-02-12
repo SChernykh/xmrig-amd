@@ -99,7 +99,7 @@ set(HEADERS_CRYPTO
     src/crypto/skein_port.h
     src/crypto/soft_aes.h
    )
-   
+
 if (XMRIG_ARM)
     set(HEADERS_CRYPTO "${HEADERS_CRYPTO}" src/crypto/CryptoNight_arm.h)
 else()
@@ -206,9 +206,6 @@ add_definitions(/D__STDC_FORMAT_MACROS)
 add_definitions(/DUNICODE)
 add_definitions(/DXMRIG_AMD_PROJECT)
 add_definitions(/DXMRIG_NO_LIBCPUID)
-if (TEST_CN_R)
-    add_definitions(/DXMRIG_TEST_CRYPTONIGHT_R)
-endif()
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 

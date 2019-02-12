@@ -217,16 +217,15 @@ static cl_program CryptonightR_build_program(
     return program;
 }
 
+static bool is_64bit(xmrig::Variant variant)
+{
+    return variant == xmrig::VARIANT_4_64;
+}
+
 cl_program CryptonightR_get_program(GpuContext* ctx, xmrig::Variant variant, uint64_t height, bool background, cl_kernel old_kernel)
 {
     if (background) {
         background_exec([=](){ CryptonightR_get_program(ctx, variant, height, false, old_kernel); });
-        return nullptr;
-    }
-
-    if ((variant != xmrig::VARIANT_4) && (variant != xmrig::VARIANT_4_64))
-    {
-        LOG_ERR("CryptonightR_get_program: invalid variant %d", variant);
         return nullptr;
     }
 
@@ -243,7 +242,22 @@ cl_program CryptonightR_get_program(GpuContext* ctx, xmrig::Variant variant, uin
     }
 
     V4_Instruction code[256];
-    const int code_size = v4_random_math_init(code, height);
+	int code_size;
+	switch (variant)
+	{
+	case xmrig::VARIANT_WOW:
+		code_size = v4_random_math_init<xmrig::VARIANT_WOW>(code, height);
+		break;
+	case xmrig::VARIANT_4:
+		code_size = v4_random_math_init<xmrig::VARIANT_4>(code, height);
+		break;
+	case xmrig::VARIANT_4_64:
+		code_size = v4_random_math_init<xmrig::VARIANT_4_64>(code, height);
+		break;
+	default:
+		LOG_ERR("CryptonightR_get_program: invalid variant %d", variant);
+		return nullptr;
+	}
 
     std::string source_code(source_code_template, offset);
     source_code.append(get_code(code, code_size));
@@ -252,7 +266,7 @@ cl_program CryptonightR_get_program(GpuContext* ctx, xmrig::Variant variant, uin
     char options[512] = {};
     OclCache::get_options(xmrig::CRYPTONIGHT, variant, ctx, options, sizeof(options));
 
-    if (variant == xmrig::VARIANT_4_64)
+    if (is_64bit(variant))
     {
         strcat(options, " -DRANDOM_MATH_64_BIT");
     }

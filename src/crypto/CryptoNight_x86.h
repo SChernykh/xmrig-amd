@@ -543,7 +543,7 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
         ch = ((uint64_t*) &l0[idx0 & MASK])[1];
 
         if (BASE == xmrig::VARIANT_2) {
-            if ((VARIANT == xmrig::VARIANT_4) || (VARIANT == xmrig::VARIANT_4_64)) {
+            if ((VARIANT == xmrig::VARIANT_WOW) || (VARIANT == xmrig::VARIANT_4) || (VARIANT == xmrig::VARIANT_4_64)) {
                 VARIANT4_RANDOM_MATH(0, al0, ah0, cl, bx0, bx1);
             } else {
                 VARIANT2_INTEGER_MATH(0, cl, cx);
@@ -663,23 +663,41 @@ void v4_64_compile_code(const V4_Instruction* code, int code_size, void* machine
 void v4_compile_code_double(const V4_Instruction* code, int code_size, void* machine_code, xmrig::Assembly ASM);
 void v4_64_compile_code_double(const V4_Instruction* code, int code_size, void* machine_code, xmrig::Assembly ASM);
 
+template<xmrig::Variant VARIANT>
+void cn_r_compile_code(const V4_Instruction* code, int code_size, void* machine_code, xmrig::Assembly ASM)
+{
+    v4_compile_code(code, code_size, machine_code, ASM);
+}
+
+template<xmrig::Variant VARIANT>
+void cn_r_compile_code_double(const V4_Instruction* code, int code_size, void* machine_code, xmrig::Assembly ASM)
+{
+    v4_compile_code_double(code, code_size, machine_code, ASM);
+}
+
+template<>
+void cn_r_compile_code<xmrig::VARIANT_4_64>(const V4_Instruction* code, int code_size, void* machine_code, xmrig::Assembly ASM)
+{
+    v4_64_compile_code(code, code_size, machine_code, ASM);
+}
+
+template<>
+void cn_r_compile_code_double<xmrig::VARIANT_4_64>(const V4_Instruction* code, int code_size, void* machine_code, xmrig::Assembly ASM)
+{
+    v4_64_compile_code_double(code, code_size, machine_code, ASM);
+}
+
 template<xmrig::Algo ALGO, xmrig::Variant VARIANT, xmrig::Assembly ASM>
 inline void cryptonight_single_hash_asm(const uint8_t *__restrict__ input, size_t size, uint8_t *__restrict__ output, cryptonight_ctx **__restrict__ ctx, uint64_t height)
 {
     constexpr size_t MEM = xmrig::cn_select_memory<ALGO>();
 
-    if ((VARIANT == xmrig::VARIANT_4) && (height != ctx[0]->generated_code_height)) {
+    if (xmrig::cn_is_cryptonight_r<VARIANT>() && !ctx[0]->generated_code_data.match(VARIANT, height)) {
         V4_Instruction code[256];
-        const int code_size = v4_random_math_init(code, height);
-        v4_compile_code(code, code_size, reinterpret_cast<void*>(ctx[0]->generated_code), ASM);
-        ctx[0]->generated_code_height = height;
-    }
-
-    if ((VARIANT == xmrig::VARIANT_4_64) && (height != ctx[0]->generated_code64_height)) {
-        V4_Instruction code[256];
-        const int code_size = v4_random_math_init(code, height);
-        v4_64_compile_code(code, code_size, reinterpret_cast<void*>(ctx[0]->generated_code64), ASM);
-        ctx[0]->generated_code64_height = height;
+        const int code_size = v4_random_math_init<VARIANT>(code, height);
+        cn_r_compile_code<VARIANT>(code, code_size, reinterpret_cast<void*>(ctx[0]->generated_code), ASM);
+        ctx[0]->generated_code_data.variant = VARIANT;
+        ctx[0]->generated_code_data.height = height;
     }
 
     xmrig::keccak(input, size, ctx[0]->state);
@@ -718,11 +736,8 @@ inline void cryptonight_single_hash_asm(const uint8_t *__restrict__ input, size_
             cn_trtl_mainloop_bulldozer_asm(ctx[0]);
         }
     }
-    else if (VARIANT == xmrig::VARIANT_4) {
+    else if (xmrig::cn_is_cryptonight_r<VARIANT>()) {
         ctx[0]->generated_code(ctx[0]);
-    }
-    else if (VARIANT == xmrig::VARIANT_4_64) {
-        ctx[0]->generated_code64(ctx[0]);
     }
 
     cn_implode_scratchpad<ALGO, MEM, false>(reinterpret_cast<__m128i*>(ctx[0]->memory), reinterpret_cast<__m128i*>(ctx[0]->state));
@@ -736,18 +751,12 @@ inline void cryptonight_double_hash_asm(const uint8_t *__restrict__ input, size_
 {
     constexpr size_t MEM = xmrig::cn_select_memory<ALGO>();
 
-    if ((VARIANT == xmrig::VARIANT_4) && (height != ctx[0]->generated_code_double_height)) {
+    if (xmrig::cn_is_cryptonight_r<VARIANT>() && !ctx[0]->generated_code_double_data.match(VARIANT, height)) {
         V4_Instruction code[256];
-        const int code_size = v4_random_math_init(code, height);
-        v4_compile_code_double(code, code_size, reinterpret_cast<void*>(ctx[0]->generated_code_double), ASM);
-        ctx[0]->generated_code_double_height = height;
-    }
-
-    if ((VARIANT == xmrig::VARIANT_4_64) && (height != ctx[0]->generated_code64_double_height)) {
-        V4_Instruction code[256];
-        const int code_size = v4_random_math_init(code, height);
-        v4_64_compile_code_double(code, code_size, reinterpret_cast<void*>(ctx[0]->generated_code64_double), ASM);
-        ctx[0]->generated_code64_double_height = height;
+        const int code_size = v4_random_math_init<VARIANT>(code, height);
+        cn_r_compile_code_double<VARIANT>(code, code_size, reinterpret_cast<void*>(ctx[0]->generated_code_double), ASM);
+        ctx[0]->generated_code_double_data.variant = VARIANT;
+        ctx[0]->generated_code_double_data.height = height;
     }
 
     xmrig::keccak(input,        size, ctx[0]->state);
@@ -765,11 +774,8 @@ inline void cryptonight_double_hash_asm(const uint8_t *__restrict__ input, size_
     else if (VARIANT == xmrig::VARIANT_TRTL) {
         cn_trtl_double_mainloop_sandybridge_asm(ctx[0], ctx[1]);
     }
-    else if (VARIANT == xmrig::VARIANT_4) {
+    else if (xmrig::cn_is_cryptonight_r<VARIANT>()) {
         ctx[0]->generated_code_double(ctx[0], ctx[1]);
-    }
-    else if (VARIANT == xmrig::VARIANT_4_64) {
-        ctx[0]->generated_code64_double(ctx[0], ctx[1]);
     }
 
     cn_implode_scratchpad<ALGO, MEM, false>(reinterpret_cast<__m128i*>(ctx[0]->memory), reinterpret_cast<__m128i*>(ctx[0]->state));
@@ -867,7 +873,7 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
         ch = ((uint64_t*) &l0[idx0 & MASK])[1];
 
         if (BASE == xmrig::VARIANT_2) {
-            if ((VARIANT == xmrig::VARIANT_4) || (VARIANT == xmrig::VARIANT_4_64)) {
+            if ((VARIANT == xmrig::VARIANT_WOW) || (VARIANT == xmrig::VARIANT_4) || (VARIANT == xmrig::VARIANT_4_64)) {
                 VARIANT4_RANDOM_MATH(0, al0, ah0, cl, bx00, bx01);
             } else {
                 VARIANT2_INTEGER_MATH(0, cl, cx0);
@@ -915,7 +921,7 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
         ch = ((uint64_t*) &l1[idx1 & MASK])[1];
 
         if (BASE == xmrig::VARIANT_2) {
-            if ((VARIANT == xmrig::VARIANT_4) || (VARIANT == xmrig::VARIANT_4_64)) {
+            if ((VARIANT == xmrig::VARIANT_WOW) || (VARIANT == xmrig::VARIANT_4) || (VARIANT == xmrig::VARIANT_4_64)) {
                 VARIANT4_RANDOM_MATH(1, al1, ah1, cl, bx10, bx11);
             } else {
                 VARIANT2_INTEGER_MATH(1, cl, cx1);
@@ -1010,7 +1016,7 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
 
 #define CN_STEP4(part, a, b0, b1, c, l, mc, ptr, idx)   \
     if (BASE == xmrig::VARIANT_2) {                     \
-        if ((VARIANT == xmrig::VARIANT_4) || (VARIANT == xmrig::VARIANT_4_64)) { \
+        if ((VARIANT == xmrig::VARIANT_WOW) || (VARIANT == xmrig::VARIANT_4) || (VARIANT == xmrig::VARIANT_4_64)) { \
             const uint64_t al = _mm_cvtsi128_si64(a);   \
             const uint64_t ah = _mm_cvtsi128_si64(_mm_srli_si128(a, 8)); \
             VARIANT4_RANDOM_MATH(part, al, ah, cl##part, b0, b1); \

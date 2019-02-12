@@ -100,6 +100,7 @@ FN_PREFIX(CryptonightR_64_template_mainloop):
 
 	movd rax, xmm6
 	movd rdx, xmm7
+	pextrq r9, xmm7, 1
 
 FN_PREFIX(CryptonightR_64_template_part2):
 	mov	rax, r13
@@ -306,7 +307,8 @@ FN_PREFIX(CryptonightR_64_template_double_mainloop):
 	movd xmm11, rbp
 	movd xmm12, r15
 	movd xmm13, rdx
-	mov [rsp+112], rcx
+	mov [rsp+104], rcx
+	mov [rsp+112], r9
 
 	mov rbx, QWORD PTR [rsp+32]
 	mov rsi, QWORD PTR [rsp+40]
@@ -322,6 +324,7 @@ FN_PREFIX(CryptonightR_64_template_double_mainloop):
 	pextrq r15, xmm3, 1
 	movd rax, xmm7
 	movd rdx, xmm9
+	pextrq r9, xmm9, 1
 
 FN_PREFIX(CryptonightR_64_template_double_part2):
 
@@ -336,7 +339,8 @@ FN_PREFIX(CryptonightR_64_template_double_part2):
 	movd rbp, xmm11
 	movd r15, xmm12
 	movd rdx, xmm13
-	mov rcx, [rsp+112]
+	mov rcx, [rsp+104]
+	mov r9, [rsp+112]
 
 	mov rbx, r8
 	mov	rax, r8
@@ -385,6 +389,7 @@ FN_PREFIX(CryptonightR_64_template_double_part2):
 	movd xmm12, rbp
 	movd xmm13, r15
 	mov [rsp+104], rcx
+	mov [rsp+112], r9
 
 	mov rbx, QWORD PTR [rsp]
 	mov rsi, QWORD PTR [rsp+8]
@@ -402,6 +407,7 @@ FN_PREFIX(CryptonightR_64_template_double_part2):
 	pextrq r15, xmm4, 1
 	movd rax, xmm8
 	movd rdx, xmm10
+	pextrq r9, xmm10, 1
 
 FN_PREFIX(CryptonightR_64_template_double_part3):
 
@@ -417,6 +423,7 @@ FN_PREFIX(CryptonightR_64_template_double_part3):
 	movd rbp, xmm12
 	movd r15, xmm13
 	mov rcx, [rsp+104]
+	mov r9, [rsp+112]
 
 	mov rax, r8
 	mul	rdi

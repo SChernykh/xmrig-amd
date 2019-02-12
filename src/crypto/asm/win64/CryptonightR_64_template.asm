@@ -525,17 +525,17 @@ CryptonightR_64_instruction1:
 CryptonightR_64_instruction2:
 	imul	rbx, rbx
 CryptonightR_64_instruction3:
-	add	rbx, rbx
+	add	rbx, r9
 	mov ecx, 2147483647
 	add	rbx, rcx
 CryptonightR_64_instruction4:
-	sub	rbx, rbx
+	sub	rbx, r9
 CryptonightR_64_instruction5:
 	ror	rbx, cl
 CryptonightR_64_instruction6:
 	rol	rbx, cl
 CryptonightR_64_instruction7:
-	xor	rbx, rbx
+	xor	rbx, r9
 CryptonightR_64_instruction8:
 	imul	rsi, rbx
 CryptonightR_64_instruction9:
@@ -615,17 +615,17 @@ CryptonightR_64_instruction41:
 CryptonightR_64_instruction42:
 	imul	rsi, rsi
 CryptonightR_64_instruction43:
-	add	rsi, rsi
+	add	rsi, r9
 	mov ecx, 2147483647
 	add	rsi, rcx
 CryptonightR_64_instruction44:
-	sub	rsi, rsi
+	sub	rsi, r9
 CryptonightR_64_instruction45:
 	ror	rsi, cl
 CryptonightR_64_instruction46:
 	rol	rsi, cl
 CryptonightR_64_instruction47:
-	xor	rsi, rsi
+	xor	rsi, r9
 CryptonightR_64_instruction48:
 	imul	rdi, rsi
 CryptonightR_64_instruction49:
@@ -705,17 +705,17 @@ CryptonightR_64_instruction81:
 CryptonightR_64_instruction82:
 	imul	rdi, rdi
 CryptonightR_64_instruction83:
-	add	rdi, rdi
+	add	rdi, r9
 	mov ecx, 2147483647
 	add	rdi, rcx
 CryptonightR_64_instruction84:
-	sub	rdi, rdi
+	sub	rdi, r9
 CryptonightR_64_instruction85:
 	ror	rdi, cl
 CryptonightR_64_instruction86:
 	rol	rdi, cl
 CryptonightR_64_instruction87:
-	xor	rdi, rdi
+	xor	rdi, r9
 CryptonightR_64_instruction88:
 	imul	rbp, rdi
 CryptonightR_64_instruction89:
@@ -795,17 +795,17 @@ CryptonightR_64_instruction121:
 CryptonightR_64_instruction122:
 	imul	rbp, rbp
 CryptonightR_64_instruction123:
-	add	rbp, rbp
+	add	rbp, r9
 	mov ecx, 2147483647
 	add	rbp, rcx
 CryptonightR_64_instruction124:
-	sub	rbp, rbp
+	sub	rbp, r9
 CryptonightR_64_instruction125:
 	ror	rbp, cl
 CryptonightR_64_instruction126:
 	rol	rbp, cl
 CryptonightR_64_instruction127:
-	xor	rbp, rbp
+	xor	rbp, r9
 CryptonightR_64_instruction128:
 	imul	rbx, rsp
 CryptonightR_64_instruction129:
