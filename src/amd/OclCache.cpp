@@ -67,7 +67,7 @@ cl_int OclCache::wait_build(cl_program program, cl_device_id device)
 void OclCache::get_options(xmrig::Algo algo, xmrig::Variant variant, const GpuContext* ctx, char* options, size_t options_size)
 {
     snprintf(options, options_size, "-DITERATIONS=%u -DMASK=%u -DWORKSIZE=%zu -DSTRIDED_INDEX=%d -DMEM_CHUNK_EXPONENT=%d -DCOMP_MODE=%d -DMEMORY=%zu "
-        "-DALGO=%d -DVARIANT=%d -DUNROLL_FACTOR=%d -DOPENCL_DRIVER_MAJOR=%d -cl-fp32-correctly-rounded-divide-sqrt",
+        "-DALGO=%d -DUNROLL_FACTOR=%d -DOPENCL_DRIVER_MAJOR=%d -cl-fp32-correctly-rounded-divide-sqrt",
         xmrig::cn_select_iter(algo, variant),
         xmrig::cn_select_mask(algo),
         ctx->workSize,
@@ -76,7 +76,6 @@ void OclCache::get_options(xmrig::Algo algo, xmrig::Variant variant, const GpuCo
         ctx->compMode,
         xmrig::cn_select_memory(algo),
         static_cast<int>(algo),
-        static_cast<int>(variant),
         ctx->unrollFactor,
         ctx->amdDriverMajorVersion
     );

@@ -266,6 +266,10 @@ cl_program CryptonightR_get_program(GpuContext* ctx, xmrig::Variant variant, uin
     char options[512] = {};
     OclCache::get_options(xmrig::CRYPTONIGHT, variant, ctx, options, sizeof(options));
 
+    char variant_buf[64];
+    snprintf(variant_buf, sizeof(variant_buf), " -DVARIANT=%d", static_cast<int>(variant));
+    strcat(options, variant_buf);
+
     if (is_64bit(variant))
     {
         strcat(options, " -DRANDOM_MATH_64_BIT");

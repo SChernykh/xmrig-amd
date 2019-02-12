@@ -101,6 +101,7 @@ CryptonightR_template_mainloop:
 
 	movd eax, xmm6
 	movd edx, xmm7
+	pextrd r9d, xmm7, 2
 
 CryptonightR_template_part2:
 	mov	rax, r13
@@ -303,7 +304,8 @@ CryptonightR_template_double_mainloop:
 	movd xmm11, rbp
 	movd xmm12, r15
 	movd xmm13, rdx
-	mov [rsp+112], rcx
+	mov [rsp+104], rcx
+	mov [rsp+112], r9
 
 	mov ebx, DWORD PTR [rsp+16]
 	mov esi, DWORD PTR [rsp+20]
@@ -320,6 +322,7 @@ CryptonightR_template_double_mainloop:
 	pextrd r15d, xmm3, 2
 	movd eax, xmm7
 	movd edx, xmm9
+	pextrd r9d, xmm9, 2
 
 CryptonightR_template_double_part2:
 
@@ -334,7 +337,8 @@ CryptonightR_template_double_part2:
 	movd rbp, xmm11
 	movd r15, xmm12
 	movd rdx, xmm13
-	mov rcx, [rsp+112]
+	mov rcx, [rsp+104]
+	mov r9, [rsp+112]
 
 	mov rbx, r8
 	mov	rax, r8
@@ -383,6 +387,7 @@ CryptonightR_template_double_part2:
 	movd xmm12, rbp
 	movd xmm13, r15
 	mov [rsp+104], rcx
+	mov [rsp+112], r9
 
 	mov ebx, DWORD PTR [rsp]
 	mov esi, DWORD PTR [rsp+4]
@@ -401,6 +406,7 @@ CryptonightR_template_double_part2:
 	pextrd r15d, xmm4, 2
 	movd eax, xmm8
 	movd edx, xmm10
+	pextrd r9d, xmm10, 2
 
 CryptonightR_template_double_part3:
 
@@ -416,6 +422,7 @@ CryptonightR_template_double_part3:
 	movd rbp, xmm12
 	movd r15, xmm13
 	mov rcx, [rsp+104]
+	mov r9, [rsp+112]
 
 	mov rax, r8
 	mul	rdi

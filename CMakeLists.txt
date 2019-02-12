@@ -11,7 +11,6 @@ option(WITH_ASM       "Enable ASM PoW implementations" ON)
 option(STRICT_CACHE   "Enable strict checks for OpenCL cache" ON)
 option(BUILD_STATIC   "Build static binary" OFF)
 option(ARM_TARGET     "Force use specific ARM target 8 or 7" 0)
-option(TEST_CN_R      "Test mode for Cryptonight R" OFF)
 
 option(WITH_DEBUG_LOG            "Enable debug log output, network, etc" OFF)
 option(WITH_INTERLEAVE_DEBUG_LOG "Enable debug log for threads interleave" OFF)
