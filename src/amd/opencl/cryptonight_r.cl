@@ -108,6 +108,10 @@ __kernel void cn1_cryptonight_r(__global uint4 *Scratchpad, __global ulong *stat
             const ulong2 chunk2 = as_ulong2(SCRATCHPAD_CHUNK(2));
             const ulong2 chunk3 = as_ulong2(SCRATCHPAD_CHUNK(3));
 
+#if ((VARIANT == VARIANT_4) || (VARIANT == VARIANT_4_64))
+            c ^= as_uint4(chunk1) ^ as_uint4(chunk2) ^ as_uint4(chunk3);
+#endif
+
             SCRATCHPAD_CHUNK(1) = as_uint4(chunk3 + bx1);
             SCRATCHPAD_CHUNK(2) = as_uint4(chunk1 + bx0);
             SCRATCHPAD_CHUNK(3) = as_uint4(chunk2 + ((ulong2 *)a)[0]);
@@ -155,22 +159,47 @@ __kernel void cn1_cryptonight_r(__global uint4 *Scratchpad, __global ulong *stat
 
 	XMRIG_INCLUDE_RANDOM_MATH
 
+#if ((VARIANT == VARIANT_4) || (VARIANT == VARIANT_4_64))
+#ifdef RANDOM_MATH_64_BIT
+        const ulong al = a[0] ^ (r2 ^ r3);
+        const ulong ah = a[1] ^ (r0 ^ r1);
+#else
+        const uint2 al = (uint2)(as_uint2(a[0]).s0 ^ r2, as_uint2(a[0]).s1 ^ r3);
+        const uint2 ah = (uint2)(as_uint2(a[1]).s0 ^ r0, as_uint2(a[1]).s1 ^ r1);
+#endif
+#endif
+
         ulong2 t;
         t.s0 = mul_hi(as_ulong2(c).s0, as_ulong2(tmp).s0);
         t.s1 = as_ulong2(c).s0 * as_ulong2(tmp).s0;
         {
-            const ulong2 chunk1 = as_ulong2(SCRATCHPAD_CHUNK(1)) ^ t;
+            const ulong2 chunk1 = as_ulong2(SCRATCHPAD_CHUNK(1))
+#if (VARIANT == VARIANT_WOW)
+            ^ t
+#endif
+            ;
             const ulong2 chunk2 = as_ulong2(SCRATCHPAD_CHUNK(2));
+#if (VARIANT == VARIANT_WOW)
             t ^= chunk2;
+#endif
             const ulong2 chunk3 = as_ulong2(SCRATCHPAD_CHUNK(3));
+
+#if ((VARIANT == VARIANT_4) || (VARIANT == VARIANT_4_64))
+            c ^= as_uint4(chunk1) ^ as_uint4(chunk2) ^ as_uint4(chunk3);
+#endif
 
             SCRATCHPAD_CHUNK(1) = as_uint4(chunk3 + bx1);
             SCRATCHPAD_CHUNK(2) = as_uint4(chunk1 + bx0);
             SCRATCHPAD_CHUNK(3) = as_uint4(chunk2 + ((ulong2 *)a)[0]);
         }
 
+#if ((VARIANT == VARIANT_4) || (VARIANT == VARIANT_4_64))
+        a[1] = as_ulong(ah) + t.s1;
+        a[0] = as_ulong(al) + t.s0;
+#else
         a[1] += t.s1;
         a[0] += t.s0;
+#endif
 
         SCRATCHPAD_CHUNK(0) = ((uint4 *)a)[0];
 

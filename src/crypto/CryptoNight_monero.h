@@ -83,7 +83,7 @@
         sqrt_result_xmm_##part = int_sqrt_v2(cx_0 + division_result); \
     } while (0)
 
-#   define VARIANT2_SHUFFLE(base_ptr, offset, _a, _b, _b1) \
+#   define VARIANT2_SHUFFLE(base_ptr, offset, _a, _b, _b1, _c) \
     do { \
         const __m128i chunk1 = _mm_load_si128((__m128i *)((base_ptr) + ((offset) ^ 0x10))); \
         const __m128i chunk2 = _mm_load_si128((__m128i *)((base_ptr) + ((offset) ^ 0x20))); \
@@ -91,6 +91,9 @@
         _mm_store_si128((__m128i *)((base_ptr) + ((offset) ^ 0x10)), _mm_add_epi64(chunk3, _b1)); \
         _mm_store_si128((__m128i *)((base_ptr) + ((offset) ^ 0x20)), _mm_add_epi64(chunk1, _b)); \
         _mm_store_si128((__m128i *)((base_ptr) + ((offset) ^ 0x30)), _mm_add_epi64(chunk2, _a)); \
+        if ((VARIANT == xmrig::VARIANT_4) || (VARIANT == xmrig::VARIANT_4_64)) { \
+            _c = _mm_xor_si128(_mm_xor_si128(_c, chunk3), _mm_xor_si128(chunk1, chunk2)); \
+        } \
     } while (0)
 
 #   define VARIANT2_SHUFFLE2(base_ptr, offset, _a, _b, _b1, hi, lo) \
@@ -125,7 +128,7 @@
         sqrt_result_##part += ((r2 + b > sqrt_input) ? -1 : 0) + ((r2 + (1ULL << 32) < sqrt_input - s) ? 1 : 0); \
     } while (0)
 
-#   define VARIANT2_SHUFFLE(base_ptr, offset, _a, _b, _b1) \
+#   define VARIANT2_SHUFFLE(base_ptr, offset, _a, _b, _b1, _c) \
     do { \
         const uint64x2_t chunk1 = vld1q_u64((uint64_t*)((base_ptr) + ((offset) ^ 0x10))); \
         const uint64x2_t chunk2 = vld1q_u64((uint64_t*)((base_ptr) + ((offset) ^ 0x20))); \
@@ -133,6 +136,9 @@
         vst1q_u64((uint64_t*)((base_ptr) + ((offset) ^ 0x10)), vaddq_u64(chunk3, vreinterpretq_u64_u8(_b1))); \
         vst1q_u64((uint64_t*)((base_ptr) + ((offset) ^ 0x20)), vaddq_u64(chunk1, vreinterpretq_u64_u8(_b))); \
         vst1q_u64((uint64_t*)((base_ptr) + ((offset) ^ 0x30)), vaddq_u64(chunk2, vreinterpretq_u64_u8(_a))); \
+        if ((VARIANT == xmrig::VARIANT_4) || (VARIANT == xmrig::VARIANT_4_64)) { \
+            _c = veorq_u64(veorq_u64(_c, chunk3), veorq_u64(chunk1, chunk2)); \
+        } \
     } while (0)
 
 #   define VARIANT2_SHUFFLE2(base_ptr, offset, _a, _b, _b1, hi, lo) \
