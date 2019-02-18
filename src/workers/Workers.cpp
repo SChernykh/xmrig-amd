@@ -27,6 +27,7 @@
 
 
 #include "amd/OclGPU.h"
+#include "amd/OclLib.h"
 #include "api/Api.h"
 #include "common/log/Log.h"
 #include "core/Config.h"
@@ -192,7 +193,29 @@ bool Workers::start(xmrig::Controller *controller)
 #   endif
 
     m_controller = controller;
-    const std::vector<xmrig::IThread *> &threads = controller->config()->threads();
+    std::vector<xmrig::IThread *> threads = controller->config()->threads();
+
+    // Remove non-existent device indices from config
+    {
+        const size_t platform_idx = controller->config()->platformIndex();
+        std::vector<cl_platform_id> platforms = OclLib::getPlatformIDs();
+        cl_uint entries = static_cast<cl_uint>(platforms.size());
+
+        if (entries > platform_idx) {
+            cl_int ret;
+            if ((ret = OclLib::getDeviceIDs(platforms[platform_idx], CL_DEVICE_TYPE_GPU, 0, nullptr, &entries)) == CL_SUCCESS) {
+                for (size_t i = 0; i < threads.size();) {
+                    if (entries <= threads[i]->index()) {
+                        LOG_WARN("Selected OpenCL device index %lu doesn't exist.", threads[i]->index());
+                        threads.erase(threads.begin() + i);
+                    } else {
+                        ++i;
+                    }
+                }
+            }
+        }
+    }
+
     size_t ways = 0;
 
     for (const xmrig::IThread *thread : threads) {
