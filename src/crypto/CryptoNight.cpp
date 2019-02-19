@@ -312,7 +312,7 @@ CryptoNight::cn_hash_fun CryptoNight::fn(xmrig::Algo algorithm, xmrig::AlgoVerif
 #       endif
     };
 
-    static_assert((VARIANT_MAX * 2 * CRYPTONIGHT_MAX) == sizeof(func_table) / sizeof(func_table[0]), "func_table size mismatch");
+    static_assert((VARIANT_MAX * 2 * ALGO_MAX) == sizeof(func_table) / sizeof(func_table[0]), "func_table size mismatch");
 
     const size_t index = VARIANT_MAX * 2 * algorithm + 2 * variant + av - 1;
 
