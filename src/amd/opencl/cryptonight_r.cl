@@ -10,7 +10,7 @@ __kernel void cn1_cryptonight_r(__global uint4 *Scratchpad, __global ulong *stat
 {
     ulong a[2], b[4];
     __local uint AES0[256], AES1[256], AES2[256], AES3[256];
-    
+
     const ulong gIdx = get_global_id(0) - get_global_offset(0);
 
     for(int i = get_local_id(0); i < 256; i += WORKSIZE)
@@ -51,10 +51,10 @@ __kernel void cn1_cryptonight_r(__global uint4 *Scratchpad, __global ulong *stat
         b[2] = states[8] ^ states[10];
         b[3] = states[9] ^ states[11];
     }
-    
+
     ulong2 bx0 = ((ulong2 *)b)[0];
     ulong2 bx1 = ((ulong2 *)b)[1];
-    
+
     mem_fence(CLK_LOCAL_MEM_FENCE);
 
 #   ifdef __NV_CL_C_VERSION
@@ -211,7 +211,7 @@ __kernel void cn1_cryptonight_r(__global uint4 *Scratchpad, __global ulong *stat
         bx1 = bx0;
         bx0 = as_ulong2(c);
     }
-    
+
 #   undef SCRATCHPAD_CHUNK
     }
     mem_fence(CLK_GLOBAL_MEM_FENCE);
