@@ -859,6 +859,8 @@ void ReleaseOpenCl(GpuContext* ctx)
     }
 
     OclLib::releaseCommandQueue(ctx->CommandQueues);
+
+    CryptonightR_release(ctx);
 }
 
 

@@ -122,6 +122,29 @@ static void background_exec(T&& func)
     }
 }
 
+void CryptonightR_release(GpuContext* ctx)
+{
+    OclLib::releaseProgram(ctx->ProgramCryptonightR);
+
+    std::lock_guard<std::mutex> g(CryptonightR_cache_mutex);
+
+    // Remove old programs from cache
+    for (size_t i = 0; i < CryptonightR_cache.size();)
+    {
+        const CacheEntry& entry = CryptonightR_cache[i];
+        if ((entry.deviceIdx == ctx->deviceIdx))
+        {
+            //LOG_INFO("CryptonightR: program for height %llu released (GpuContext release)", entry.height);
+            CryptonightR_cache[i] = std::move(CryptonightR_cache.back());
+            CryptonightR_cache.pop_back();
+        }
+        else
+        {
+            ++i;
+        }
+    }
+}
+
 static cl_program CryptonightR_build_program(
     const GpuContext* ctx,
     xmrig::Variant variant,

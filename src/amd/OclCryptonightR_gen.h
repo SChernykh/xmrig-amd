@@ -10,5 +10,6 @@ enum
 static_assert((PRECOMPILATION_DEPTH >= 1) && (PRECOMPILATION_DEPTH <= 10), "Invalid precompilation depth");
 
 cl_program CryptonightR_get_program(GpuContext* ctx, xmrig::Variant variant, uint64_t height, bool background = false, cl_kernel old_kernel = nullptr);
+void CryptonightR_release(GpuContext* ctx);
 
 #endif
