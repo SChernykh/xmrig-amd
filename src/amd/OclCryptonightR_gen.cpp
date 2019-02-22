@@ -124,7 +124,11 @@ static void background_exec(T&& func)
 
 void CryptonightR_release(GpuContext* ctx)
 {
-    OclLib::releaseProgram(ctx->ProgramCryptonightR);
+    if (ctx->ProgramCryptonightR)
+    {
+        OclLib::releaseProgram(ctx->ProgramCryptonightR);
+        ctx->ProgramCryptonightR = nullptr;
+    }
 
     std::lock_guard<std::mutex> g(CryptonightR_cache_mutex);
 
